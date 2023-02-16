@@ -290,7 +290,7 @@ namespace CleanDataCsharp.Class
                     data = dt.Rows[z][0].ToString();
                     idx = dt.Rows.IndexOf(dt.Rows[z]);
                     NewR = dt.Rows[z];
-                    if (data.Contains("ERRORONROW"))
+                    if (!data.Contains("ERRORONROW"))
                     {
                         CleanDT.ImportRow(NewR);
                         CleanDT.AcceptChanges();
@@ -321,7 +321,7 @@ namespace CleanDataCsharp.Class
             dataerror.AcceptChanges();//Guardar cambios
             error.RemoveAt(0);//Elimina el indice de la fila de errores
 
-            DtErrores.Rows[z][0] = DtErrores.Rows[z][0].ToString + "-ERRORONROW"; //Define fila como erronea
+            DtErrores.Rows[z][0] = "ERRORONROW"; //Define fila como erronea
             DtErrores.AcceptChanges();
         }        
         #endregion
@@ -329,6 +329,7 @@ namespace CleanDataCsharp.Class
         public DataTable CleanDataTableClientes(DataTable dt)
         {
             string data = "";
+            dataerror = new DataTable();
             dataerror.Columns.Add("Detalle error");//Agrega la columna del error
             for (int z = 0; z < dt.Rows.Count; z++)
             {
@@ -431,6 +432,7 @@ namespace CleanDataCsharp.Class
         public DataTable CleanDataTableProductos(DataTable dt)
         {
             string data = "";
+            dataerror = new DataTable();
             dataerror.Columns.Add("Detalle error");//Agrega la columna del error
             for (int z = 0; z < dt.Rows.Count; z++)//Filas
             {
@@ -525,6 +527,7 @@ namespace CleanDataCsharp.Class
         public DataTable CleanDataTableSucursales(DataTable dt)
         {
             string data = "";
+            dataerror = new DataTable();
             dataerror.Columns.Add("Detalle error");//Agrega la columna del error
             for (int z = 0; z < dt.Rows.Count; z++)//Filas
             {
@@ -596,6 +599,7 @@ namespace CleanDataCsharp.Class
         public DataTable CleanDataTableVentas(DataTable dt)
         {
             string data = "";
+            dataerror = new DataTable();
             dataerror.Columns.Add("Detalle error");//Agrega la columna del error
             for (int z = 0; z < dt.Rows.Count; z++)//Filas
             {

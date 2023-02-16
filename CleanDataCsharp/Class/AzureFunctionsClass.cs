@@ -33,7 +33,8 @@ namespace CleanDataCsharp.Class
             ExtenFile = FileExtension;
         }
         #region Var Azure
-        static string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl3;AccountKey=2Xe/Yjm77kNncRixR9B6LD+2rMMsvQIMSyJaxjHv8tGbH3tuKwanLLoy/IPNrEbzyvZ6J3wIi9I4+AStkiYVpQ==;EndpointSuffix=core.windows.net";
+        static string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
+        static string Str_Connect2 = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";
         //static string ContainerNameA = "containercleaned";
         string rutaDLSG2_Clean;
         static BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect);
@@ -117,8 +118,9 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
+                DataValidate=new DataTable();
                 DataValidate.Columns.Add("ERROR");
-                DataValidate.Rows.Add("ERROR: " + ex.Message);
+                DataValidate.Rows.Add("ERROR: " + ex.Message+" Validar que el contenedor especificado tenga los permisos de acceso necesarios");
             }           
 
             return DataValidate;
@@ -142,7 +144,7 @@ namespace CleanDataCsharp.Class
             catch (Exception ex)
             {
                 DT_DataSource.Columns.Add("ERROR");
-                DT_DataSource.Rows.Add("ERROR: " + ex.Message);
+                DT_DataSource.Rows.Add("ERROR: " + ex.Message + " Validar que el contenedor especificado tenga los permisos de acceso necesarios");
             }
 
             return DT_DataSource;
@@ -161,7 +163,7 @@ namespace CleanDataCsharp.Class
             try
             {
                 byte[] blobBytes;
-                using (var writeStream = new MemoryStream())
+                using (var writeStream = new MemoryStream()) //Transforma el Stream a archivos
                 {
                     using (var writer = new StreamWriter(writeStream))
                     {
@@ -205,8 +207,8 @@ namespace CleanDataCsharp.Class
                 }
                 using (var readStream = new MemoryStream(blobBytes))
                 {
-                    container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe
-                    container.UploadBlob(FilenameAz, readStream);//Carga el archivo
+                    container.DeleteBlobIfExists(FilenameAz+ ExtenFile); //Borra el archivo si ya existe
+                    container.UploadBlob(FilenameAz+ ExtenFile, readStream);//Carga el archivo
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Archivo cargado a contenedor correctamente".ToUpper());
                     Console.ForegroundColor = ConsoleColor.White;
