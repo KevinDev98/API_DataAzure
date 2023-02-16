@@ -276,7 +276,7 @@ namespace CleanDataCsharp.Class
             for (var i = 0; i <= ColumnasHeader - 1; i++)
                 csv.Columns.Add(dt.Columns[i].ColumnName);
         }
-        public DataTable DeleteDirtyRows(DataTable dt)
+        public DataTable DeleteDirtyRows(DataTable dt) //Elimina las filas sucias de una tabla
         {
             string data = "";
             int idx = 0;
@@ -290,7 +290,7 @@ namespace CleanDataCsharp.Class
                     data = dt.Rows[z][0].ToString();
                     idx = dt.Rows.IndexOf(dt.Rows[z]);
                     NewR = dt.Rows[z];
-                    if (data.Contains("DELETE"))
+                    if (data.Contains("ERRORONROW"))
                     {
                         CleanDT.ImportRow(NewR);
                         CleanDT.AcceptChanges();
@@ -299,7 +299,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                Console.WriteLine("delete dirty rows" + ex.Message);
+                Console.WriteLine("ERRORONROW dirty rows" + ex.Message);
             }
             return CleanDT;
         }
@@ -321,52 +321,9 @@ namespace CleanDataCsharp.Class
             dataerror.AcceptChanges();//Guardar cambios
             error.RemoveAt(0);//Elimina el indice de la fila de errores
 
-            DtErrores.Rows[z][0] = "DELETE"; //Define fila como erronea
+            DtErrores.Rows[z][0] = DtErrores.Rows[z][0].ToString + "-ERRORONROW"; //Define fila como erronea
             DtErrores.AcceptChanges();
-        }
-        public DataTable ConvertCSVtoDataTable(string strFilePath)
-        {
-            DataTable dt = new DataTable();
-            using (StreamReader DataReaderCSV = new StreamReader(strFilePath))
-            {
-                string[] headers = DataReaderCSV.ReadLine().Split(",");
-                foreach (string header in headers)
-                {
-                    dt.Columns.Add(header);
-                }
-                try
-                {
-                    while (!DataReaderCSV.EndOfStream)
-                    {
-                        string[] rows = DataReaderCSV.ReadLine().Split(",");
-                        DataRow dr = dt.NewRow();
-                        string data;
-                        for (int i = 0; i < headers.Length; i++)
-                        {
-                            data = rows[i];
-                            if (rows[i].Contains(":") & rows[i].Contains("/")) //Elimina los espacios en blanco de las columnas que no son hora
-                            {
-                                data = data.Replace(" 00:00", "").Replace(" 00:00:00.0000000", ""); //Elimina caracteres inecesarios
-                                rows[i] = data;
-                            }
-                            //else
-                            //{
-                            //    data = data.Substring(0, data.Length - 1);//Elimina el espacio en blanco                                    
-                            //    rows[i] = data;
-                            //}
-                            rows[i] = Remove_SpacheWithe(Remove_Special_Characteres(data));
-                            dr[i] = rows[i];
-                        }
-                        dt.Rows.Add(dr);
-                    }
-                }
-                catch (Exception EX)
-                {
-                    Console.WriteLine(EX.Message);
-                }
-            }
-            return dt;
-        }
+        }        
         #endregion
         #region Reglas aplicadas 
         public DataTable CleanDataTableClientes(DataTable dt)

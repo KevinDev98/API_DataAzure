@@ -17,18 +17,26 @@ namespace CleanDataCsharp.Class
 {
     public class AzureFunctionsClass
     {
+        static string ContainerNameA;
+        public static string ExtenFile;
+        string FileName;
         FunctionsClass Functions = new FunctionsClass();
+        DataTable dataerror = new DataTable();
+        DataTable DT_DataSource = new DataTable();
+        public AzureFunctionsClass(string ContainerName, string FileExtension)
+        {
+            ContainerNameA=ContainerName;
+            ExtenFile=FileExtension;
+        }
         #region Var Azure
         static string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl3;AccountKey=2Xe/Yjm77kNncRixR9B6LD+2rMMsvQIMSyJaxjHv8tGbH3tuKwanLLoy/IPNrEbzyvZ6J3wIi9I4+AStkiYVpQ==;EndpointSuffix=core.windows.net";
-        static string ContainerNameA = "containercleaned";
+        //static string ContainerNameA = "containercleaned";
         string rutaDLSG2_Clean;
-
         static BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect);
         static BlobContainerClient container = AzureBlobStorage.GetBlobContainerClient(ContainerNameA);
         static BlobClient BlobStrg;
-        #endregion     
-        DataTable dataerror = new DataTable();
-        DataTable DT_DataSource = new DataTable();
+        #endregion                   
+
         #region UploadBlobAzure
         public void UploadFileDLSG2(FileInfo UploadFile) //METODO 1 PARA CARGAR DATOS A UN CONTENEDOR
         {
@@ -45,7 +53,7 @@ namespace CleanDataCsharp.Class
                 Console.WriteLine("Azure error: " + ex.Message);
             }
         }
-        public DataTable ReadFileFromAzure(StreamReader DataReaderCSV)
+        public DataTable ReadFileCSVFromAzure(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
         {
             DataTable dt = new DataTable();
             using (DataReaderCSV)
@@ -82,16 +90,15 @@ namespace CleanDataCsharp.Class
                 }
             }
             return dt;
-        } //Lee un archivo del contenedor y lo transforma en DataTable para poder limpiar la data
-        string FileName = "";
-        public string GetUrlContainer()
+        } //Lee un archivo del contenedor y lo transforma en DataTable para poder limpiar la data        
+        public string GetUrlContainer()//Obtiene la URL del contenedor
         {
             BlobStrg = new BlobClient(Str_Connect, ContainerNameA, "");
             string url = BlobStrg.Uri.ToString() + "/";
             //url = url.Replace(TableName + ".csv", "");
             return url;
         }
-        DataTable CSVtoTableForAzure(string TableName)
+        DataTable TransformFileforAzure(string TableName)
         {
             BlobStrg = new BlobClient(Str_Connect, ContainerNameA, "Clean" + TableName + ".csv");
             rutaDLSG2_Clean = BlobStrg.Uri.ToString();
@@ -104,8 +111,10 @@ namespace CleanDataCsharp.Class
             clientWeb = new WebClient();
             streamAzure = clientWeb.OpenRead(rutaDLSG2_Clean);//Transforma los datos del archivo de origen
             readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
-
-            DT_DataSource = ReadFileFromAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
+            if (ExtenFile=="CSV")
+            {
+                DT_DataSource = ReadFileCSVFromAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
+            }            
             return DT_DataSource;
         }
 
