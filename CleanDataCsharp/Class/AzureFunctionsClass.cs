@@ -17,16 +17,20 @@ namespace CleanDataCsharp.Class
 {
     public class AzureFunctionsClass
     {
-        static string ContainerNameA;
-        public static string ExtenFile;
-        string FileName;
+        static string ContainerNameA = "";
+        public static string ExtenFile = "";
+        static string FileName;
         FunctionsClass Functions = new FunctionsClass();
         DataTable dataerror = new DataTable();
         DataTable DT_DataSource = new DataTable();
+        DataTable DataValidate = new DataTable();
+        WebClient clientWeb;
+        Stream streamAzure;
+        StreamReader readerFileAzure;
         public AzureFunctionsClass(string ContainerName, string FileExtension)
         {
-            ContainerNameA=ContainerName;
-            ExtenFile=FileExtension;
+            ContainerNameA = ContainerName;
+            ExtenFile = FileExtension;
         }
         #region Var Azure
         static string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl3;AccountKey=2Xe/Yjm77kNncRixR9B6LD+2rMMsvQIMSyJaxjHv8tGbH3tuKwanLLoy/IPNrEbzyvZ6J3wIi9I4+AStkiYVpQ==;EndpointSuffix=core.windows.net";
@@ -98,27 +102,53 @@ namespace CleanDataCsharp.Class
             //url = url.Replace(TableName + ".csv", "");
             return url;
         }
-        DataTable TransformFileforAzure(string TableName)
+        public DataTable ValidateExistsContainer(string FileName)
         {
-            BlobStrg = new BlobClient(Str_Connect, ContainerNameA, "Clean" + TableName + ".csv");
-            rutaDLSG2_Clean = BlobStrg.Uri.ToString();
-            FileName = BlobStrg.Name;
-
-            WebClient clientWeb;
-            Stream streamAzure;
-            StreamReader readerFileAzure;
-
-            clientWeb = new WebClient();
-            streamAzure = clientWeb.OpenRead(rutaDLSG2_Clean);//Transforma los datos del archivo de origen
-            readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
-            if (ExtenFile=="CSV")
+            try
             {
-                DT_DataSource = ReadFileCSVFromAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
-            }            
+                BlobStrg = new BlobClient(Str_Connect, ContainerNameA, FileName + "." + ExtenFile);
+                clientWeb = new WebClient();
+                FileName = BlobStrg.Name;
+
+                rutaDLSG2_Clean = BlobStrg.Uri.ToString();                
+                streamAzure = clientWeb.OpenRead(rutaDLSG2_Clean);//Intenta leer el archivo, si no existe saltará al catch
+                DataValidate.Columns.Add("Contenedores");
+                DataValidate.Rows.Add(FileName);
+            }
+            catch (Exception ex)
+            {
+                DataValidate.Columns.Add("ERROR");
+                DataValidate.Rows.Add("ERROR: " + ex.Message);
+            }           
+
+            return DataValidate;
+        }
+        public DataTable TransformFileforAzure(string FileName)
+        {
+            try
+            {
+                BlobStrg = new BlobClient(Str_Connect, ContainerNameA, FileName + "." + ExtenFile.ToLower());
+                clientWeb = new WebClient();
+
+                rutaDLSG2_Clean = BlobStrg.Uri.ToString();
+                FileName = BlobStrg.Name;                
+                streamAzure = clientWeb.OpenRead(rutaDLSG2_Clean);//Transforma los datos del archivo de origen
+                readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
+                if (ExtenFile.ToLower() == "csv")
+                {
+                    DT_DataSource = ReadFileCSVFromAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
+                }
+            }
+            catch (Exception ex)
+            {
+                DT_DataSource.Columns.Add("ERROR");
+                DT_DataSource.Rows.Add("ERROR: " + ex.Message);
+            }
+
             return DT_DataSource;
         }
 
-        void UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
+        public void UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
         {
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect);//Se inicia conexión
