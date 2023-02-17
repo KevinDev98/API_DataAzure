@@ -1,6 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using System.Xml;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace CleanDataCsharp.Class
 {
@@ -755,10 +762,13 @@ namespace CleanDataCsharp.Class
                             data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
                             if (string.IsNullOrEmpty(data))
                             {
-                                isnull = true;
                                 indexerror.Add(z);
                                 error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
                                 ControlErrores(dt, z);
+                            }
+                            else
+                            {
+                                dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
                             }
                         }
                     }
@@ -771,9 +781,176 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
+            dt.AcceptChanges();
             dt = DropDuplicates(dt);//elimina filas duplicadas
+            dt.AcceptChanges();
             return dt;
         }
         #endregion
+        #region ConvertData
+        public DataTable FromXlmToDataTable(StreamReader DataReaderXML)
+        {
+            DataSet ds = new DataSet();
+            DataTable data = new DataTable();
+            try
+            {
+                ds.ReadXml(new XmlTextReader(DataReaderXML));
+                data = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                data = new DataTable();
+                data.Columns.Add("Erro XML");
+                data.Rows.Add(ex.Message);
+            }
+
+            return data;
+        }
+        public DataTable FromJsonToDataTable(StreamReader DataReaderJSON)
+        {
+            DataTable data = new DataTable();
+            try
+            {
+                var jsonData = DataReaderJSON.ReadToEnd();
+                data = JsonConvert.DeserializeObject<DataTable>(jsonData);
+            }
+            catch (Exception ex)
+            {
+
+                data = new DataTable();
+                data.Columns.Add("Erro JSON");
+                data.Rows.Add(ex.Message);
+            }
+            return data;
+        }
+        public DataTable FromCsvForDataTable(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
+        {
+            DataTable dt = new DataTable();
+            using (DataReaderCSV)
+            {
+                string[] headers = DataReaderCSV.ReadLine().Split(",");
+                foreach (string header in headers)
+                {
+                    dt.Columns.Add(header);
+                }
+                try
+                {
+                    while (!DataReaderCSV.EndOfStream)
+                    {
+                        string[] rows = DataReaderCSV.ReadLine().Split(",");
+                        DataRow dr = dt.NewRow();
+                        string data;
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            data = rows[i];
+                            if (rows[i].Contains(":") & rows[i].Contains("/")) //Elimina los espacios en blanco de las columnas que no son hora
+                            {
+                                data = data.Replace(" 00:00", "").Replace(" 00:00:00.0000000", ""); //Elimina caracteres inecesarios
+                                rows[i] = data;
+                            }
+                            rows[i] = Remove_SpacheWithe(Remove_Special_Characteres(data));
+                            dr[i] = rows[i];
+                        }
+                        dt.Rows.Add(dr);
+                    }
+                }
+                catch (Exception EX)
+                {
+                    //Console.WriteLine(EX.Message);
+                }
+            }
+            return dt;
+        } //Lee un archivo del contenedor y lo transforma en DataTable para poder limpiar la data        
+        public string FromDatatableToXML(DataTable dt)
+        {
+            MemoryStream str = new MemoryStream();
+            StreamReader sr;
+            string xmlstr;
+            try
+            {
+                dt.TableName = "XML";
+                dt.WriteXml(str, true);
+                str.Seek(0, SeekOrigin.Begin);
+                sr = new StreamReader(str);
+                xmlstr = sr.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                xmlstr = "error convirtiendo a XML: " + ex.Message;
+            }
+
+            return (xmlstr);
+        }
+        public byte[] FromCSVtoFile(DataTable table)
+        {
+            byte[] blobBytes;
+            using (var writeStream = new MemoryStream()) //Transforma el Stream a archivos
+            {
+                using (var writer = new StreamWriter(writeStream))
+                {
+                    //table.WriteXml(writer, XmlWriteMode.WriteSchema);
+                    for (int i = 0; i < table.Columns.Count; i++)
+                    {
+                        writer.Write(table.Columns[i]);
+                        if (i < table.Columns.Count - 1)
+                        {
+                            writer.Write(",");
+                        }
+                    }
+                    writer.Write(writer.NewLine);
+                    foreach (DataRow dr in table.Rows)
+                    {
+                        for (int i = 0; i < table.Columns.Count; i++)
+                        {
+                            if (!Convert.IsDBNull(dr[i]))
+                            {
+                                string value = dr[i].ToString();
+                                if (value.Contains(','))
+                                {
+                                    value = String.Format("\"{0}\"", value);
+                                    writer.Write(value);
+                                }
+                                else
+                                {
+                                    writer.Write(dr[i].ToString());
+                                }
+                            }
+                            if (i < table.Columns.Count - 1)
+                            {
+                                writer.Write(",");
+                            }
+                        }
+                        writer.Write(writer.NewLine);
+                    }
+                    writer.Close();
+                }
+                blobBytes = writeStream.ToArray();
+            }
+            return blobBytes;
+        }
+        public XmlDocument FromXMLtoFile(DataTable data)
+        {
+            //byte[] blobBytes;
+            XmlDocument document = new XmlDocument();
+            string xml = "";
+            xml = FromDatatableToXML(data);
+            document.Load(xml);
+            return document;
+
+            //using (var writeStream = new MemoryStream())
+            //{
+            //    using (var writer = new StreamWriter(writeStream))
+            //    {
+            //        while (reader.Read())
+            //        {
+            //            writer.Write(reader.Value);
+            //        }
+            //    }
+            //    blobBytes = writeStream.ToArray();
+            //}
+            //return blobBytes;
+        }
     }
+    #endregion
 }
+

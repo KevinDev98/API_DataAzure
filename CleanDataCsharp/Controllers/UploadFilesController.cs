@@ -55,13 +55,13 @@ namespace CleanDataCsharp.Controllers
                 if (TorF)
                 {
                     jsonresponse.CodeResponse = 1;
-                    jsonresponse.MessageResponse = "Contenedor " + Container + " y archivo encontrado " + File +"."+ Ext + " encontrados";
+                    jsonresponse.MessageResponse = "Contenedor " + Container + " y archivo encontrado " + File + "." + Ext + " encontrados";
                     jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                 }
                 else
                 {
                     jsonresponse.CodeResponse = 0;
-                    jsonresponse.MessageResponse = "Contenedor " + Container + " y/o archivo " + File +"."+ Ext + " no encontrados";
+                    jsonresponse.MessageResponse = "Contenedor " + Container + " y/o archivo " + File + "." + Ext + " no encontrados";
                 }
             }
             catch (Exception ex)
@@ -79,7 +79,7 @@ namespace CleanDataCsharp.Controllers
         {
             try
             {
-                if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated==null || parametros.ContenedorRejected==null)
+                if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated == null || parametros.ContenedorRejected == null)
                 {
                     jsonresponse.CodeResponse = 0;
                     jsonresponse.MessageResponse = "Parametros vacios";
@@ -138,6 +138,10 @@ namespace CleanDataCsharp.Controllers
                                 DT_DataSource = Functions.CleanDataTableVentas(DT_DataSource);
                             }
                         }
+                        else
+                        {
+                            DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                        }
 
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
                         try
@@ -148,20 +152,38 @@ namespace CleanDataCsharp.Controllers
                             string URLsucios = "";
                             rutaOutput = Azure.GetUrlContainer();
                             FileName = FileName.Replace("Clean", "");
+                            int errorproceso = 0;
                             if (DT_DataSource.Rows.Count > 0)
                             {
-                                Upload=Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Curated_" + FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: curated);
-                                rutaOutput = rutaOutput.Replace(Contenedor,curated);
-                                URLlimpios = rutaOutput + "Curated_" + FileName + "." + ExtencionArchivos;
+                                if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                                {
+                                    errorproceso = 1;
+                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                    rutaOutput = rutaOutput.Replace(Contenedor, rejected);
+                                    URLsucios = rutaOutput + ExtencionArchivos + "_Rejected_" + FileName + ".csv";
+                                }
+                                else
+                                {
+                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Curated_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: curated);
+                                    rutaOutput = rutaOutput.Replace(Contenedor, curated);
+                                    URLlimpios = rutaOutput + ExtencionArchivos + "_Curated_" + FileName + ".csv";
+                                }
                             }
                             if (dataerror.Rows.Count > 0)
                             {
-                                Upload=Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + "." + ExtencionArchivos, table: dataerror, ContainerBlobName: rejected);
+                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
                                 rutaOutput = rutaOutput.Replace(Contenedor, rejected);
-                                URLsucios = rutaOutput + "Rejected_" + FileName + "." + ExtencionArchivos;
+                                URLsucios = rutaOutput + ExtencionArchivos + "_Rejected_" + FileName + ".csv";
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
-                            sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
+                            if (errorproceso == 1)
+                            {
+                                sucios = "Filas sucuias:" + DT_DataSource.Rows.Count.ToString()+". Archivo original dañado";
+                            }
+                            else
+                            {
+                                sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
+                            }
                             DataValidate.Rows.Add(FileName, limpios, URLlimpios, sucios, URLsucios);
                         }
                         catch (Exception ex)
@@ -212,9 +234,9 @@ namespace CleanDataCsharp.Controllers
                         DT_DataSource = new DataTable();
                         dataerror = new DataTable();
 
-                        FileName = NombresArchivos[k];                        
+                        FileName = NombresArchivos[k];
                         DT_DataSource = Azure.TransformFileforAzure(FileName);
-                        
+
                         DT_DataSource = Functions.CleanDataTable(DT_DataSource);
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
                         try
