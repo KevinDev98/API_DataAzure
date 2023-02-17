@@ -13,6 +13,9 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage;
 using CleanDataCsharp.Models;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Hosting.Server;
+using System.Xml;
 
 namespace CleanDataCsharp.Class
 {
@@ -62,7 +65,20 @@ namespace CleanDataCsharp.Class
                 //Console.WriteLine("Azure error: " + ex.Message);
             }
         }
-        public DataTable ToCSVforAzure(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
+        public DataTable FromXlmToDataTable(string xml)
+        {
+            DataSet ds = new DataSet();
+            ds.ReadXml(new XmlTextReader(new StringReader(xml)));
+
+            DataTable data = ds.Tables[0];
+            return data;
+        }
+        public DataTable FromJsonToDataTable(string jsonData)
+        {
+            DataTable data = JsonConvert.DeserializeObject<DataTable>(jsonData);
+            return data;
+        }
+        public DataTable FromCsvForDataTable(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
         {
             DataTable dt = new DataTable();
             using (DataReaderCSV)
@@ -145,7 +161,7 @@ namespace CleanDataCsharp.Class
                 readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
                 if (ExtenFile.ToLower() == "csv")
                 {
-                    DT_DataSource = ToCSVforAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
+                    DT_DataSource = FromCsvForDataTable(readerFileAzure);//Manda a transformar el archivo a DataTable
                 }
             }
             catch (Exception ex)
