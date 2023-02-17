@@ -715,6 +715,48 @@ namespace CleanDataCsharp.Class
             }
             return dt;
         }
+
+        public DataTable CleanDataTable(DataTable dt)
+        {
+            string data = "";
+            dataerror = new DataTable();
+            CopyHeaders(dt, dataerror);
+            for (int z = 0; z < dt.Rows.Count; z++)
+            {
+                for (int s = 0; s < dt.Columns.Count; s++)
+                {
+                    try
+                    {
+                        if (dt.Rows[z][s] == null)//Valida si la celda es null
+                        {
+                            isnull = true;
+                            indexerror.Add(z);
+                            error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            ControlErrores(dt, z);
+                        }
+                        else
+                        {
+                            data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
+                            if (string.IsNullOrEmpty(data))
+                            {
+                                isnull = true;
+                                indexerror.Add(z);
+                                error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                                ControlErrores(dt, z);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        dt = new DataTable();
+                        dt.Columns.Add("ERROR CLEANED");
+                        dt.Rows.Add("error limpiando datos: " + ex.Message);
+                        //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
+                    }
+                }
+            }
+            return dt;
+        }
         #endregion
     }
 }

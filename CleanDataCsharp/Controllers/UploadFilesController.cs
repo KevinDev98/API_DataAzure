@@ -74,8 +74,8 @@ namespace CleanDataCsharp.Controllers
         }
 
         [HttpPost]
-        [Route("DataClean")]
-        public IActionResult CleanData(ParametrosModel parametros)
+        [Route("DataCleanVentas")]
+        public IActionResult CleanDataVentas(ParametrosModel parametros)
         {
             try
             {
@@ -113,7 +113,6 @@ namespace CleanDataCsharp.Controllers
                                 dataerror = new DataTable();
                                 DT_DataSource = Functions.CleanDataTableClientes(DT_DataSource);
                             }
-
                         }
                         else if (FileName.ToLower().Contains("productos"))
                         {
@@ -122,7 +121,6 @@ namespace CleanDataCsharp.Controllers
                                 dataerror = new DataTable();
                                 DT_DataSource = Functions.CleanDataTableProductos(DT_DataSource);
                             }
-
                         }
                         else if (FileName.ToLower().Contains("Sucursales"))
                         {
@@ -131,7 +129,6 @@ namespace CleanDataCsharp.Controllers
                                 dataerror = new DataTable();
                                 DT_DataSource = Functions.CleanDataTableSucursales(DT_DataSource);
                             }
-
                         }
                         else if (FileName.ToLower().Contains("Ventas"))
                         {
@@ -140,7 +137,6 @@ namespace CleanDataCsharp.Controllers
                                 dataerror = new DataTable();
                                 DT_DataSource = Functions.CleanDataTableVentas(DT_DataSource);
                             }
-
                         }
 
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
@@ -184,7 +180,83 @@ namespace CleanDataCsharp.Controllers
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message;
             }
+            return Json(jsonresponse);
+        }
+        [HttpPost]
+        [Route("DataClean")]
+        public IActionResult CleanData(ParametrosModel parametros)
+        {
+            try
+            {
+                if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated == null || parametros.ContenedorRejected == null)
+                {
+                    jsonresponse.CodeResponse = 0;
+                    jsonresponse.MessageResponse = "Parametros vacios";
+                }
+                else
+                {
+                    Contenedor = parametros.ContenedorSource;
+                    ExtencionArchivos = parametros.ExtencionArchivosN;
+                    NombresArchivos = parametros.NombresArchivosN;
+                    curated = parametros.ContenedorCurated;
+                    rejected = parametros.ContenedorRejected;
+                    Azure = new AzureFunctionsClass(Contenedor, ExtencionArchivos);
 
+                    DataValidate = new DataTable();
+                    DataValidate.Columns.Add("Archivo Trabajado");
+                    DataValidate.Columns.Add("Archivo Curated");
+                    DataValidate.Columns.Add("URL Curated");
+                    DataValidate.Columns.Add("Archivo Rejected");
+                    DataValidate.Columns.Add("URL Rejected");
+
+                    for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                    {
+                        DT_DataSource = new DataTable();
+                        dataerror = new DataTable();
+
+                        FileName = NombresArchivos[k];                        
+                        DT_DataSource = Azure.TransformFileforAzure(FileName);
+                        
+                        DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                        DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
+                        try
+                        {
+                            dataerror = Functions.GetDTErrores();
+                            string limpios, sucios, Upload;
+                            string URLlimpios = "";
+                            string URLsucios = "";
+                            rutaOutput = Azure.GetUrlContainer();
+                            FileName = FileName.Replace("Clean", "");
+                            if (DT_DataSource.Rows.Count > 0)
+                            {
+                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Clean" + FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: Contenedor);
+                                URLlimpios = rutaOutput + "Clean" + FileName + "." + ExtencionArchivos;
+                            }
+                            if (dataerror.Rows.Count > 0)
+                            {
+                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "NoClean_" + FileName + "." + ExtencionArchivos, table: dataerror, ContainerBlobName: rejected);
+                                URLsucios = rutaOutput + "NoClean_" + FileName + "." + ExtencionArchivos;
+                            }
+                            limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
+                            sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
+                            DataValidate.Rows.Add(FileName, limpios, URLlimpios, sucios, URLsucios);
+                        }
+                        catch (Exception ex)
+                        {
+                            jsonresponse.CodeResponse = 0;
+                            jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
+                        }
+                    }
+                    jsonresponse.CodeResponse = 1;
+                    jsonresponse.MessageResponse = "Proceso Terminado con Exito";
+                    jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                }
+            }
+            catch (Exception ex)
+            {
+                jsonresponse.CodeResponse = 0;
+                jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message;
+            }
             return Json(jsonresponse);
         }
     }

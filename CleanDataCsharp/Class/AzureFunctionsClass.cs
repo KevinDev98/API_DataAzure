@@ -62,7 +62,7 @@ namespace CleanDataCsharp.Class
                 //Console.WriteLine("Azure error: " + ex.Message);
             }
         }
-        public DataTable ReadFileCSVFromAzure(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
+        public DataTable ToCSVforAzure(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
         {
             DataTable dt = new DataTable();
             using (DataReaderCSV)
@@ -145,7 +145,7 @@ namespace CleanDataCsharp.Class
                 readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
                 if (ExtenFile.ToLower() == "csv")
                 {
-                    DT_DataSource = ReadFileCSVFromAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
+                    DT_DataSource = ToCSVforAzure(readerFileAzure);//Manda a transformar el archivo a DataTable
                 }
             }
             catch (Exception ex)
