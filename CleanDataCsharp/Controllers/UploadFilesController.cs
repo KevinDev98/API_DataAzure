@@ -25,6 +25,7 @@ namespace CleanDataCsharp.Controllers
         FunctionsClass Functions = new FunctionsClass();
         AzureFunctionsClass Azure; // = new AzureFunctionsClass();
         ResponsesModel jsonresponse = new ResponsesModel();
+        SecurityClass Security = new SecurityClass();
 
         DataTable DataValidate = new DataTable();
         Boolean TorF = false;
@@ -32,9 +33,9 @@ namespace CleanDataCsharp.Controllers
         string FileName = "";
         DataTable dataerror = new DataTable();
         DataTable DT_DataSource = new DataTable();
-        string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
-
-        string Contenedor;
+        //string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
+        //string Str_Connect2 = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";
+        string Contenedor, curated, rejected;
         string ExtencionArchivos;
         List<string> NombresArchivos = new List<string>();
 
@@ -44,7 +45,7 @@ namespace CleanDataCsharp.Controllers
         {
             Azure = new AzureFunctionsClass(Container, Ext);
             DataValidate = Azure.ValidateExistsContainer(File);
-
+            //Str_Connect = Security.Encriptar(Str_Connect);
             if (DataValidate.Columns[0].ColumnName != "ERROR")
             {
                 TorF = true;
@@ -54,13 +55,13 @@ namespace CleanDataCsharp.Controllers
                 if (TorF)
                 {
                     jsonresponse.CodeResponse = 1;
-                    jsonresponse.MessageResponse = "Contenedor " + Container + " y archivo encontrado " + File + Ext + " encontrados";
+                    jsonresponse.MessageResponse = "Contenedor " + Container + " y archivo encontrado " + File +"."+ Ext + " encontrados";
                     jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                 }
                 else
                 {
                     jsonresponse.CodeResponse = 0;
-                    jsonresponse.MessageResponse = "Contenedor " + Container + " y/o archivo " + File + Ext + " no encontrados";
+                    jsonresponse.MessageResponse = "Contenedor " + Container + " y/o archivo " + File +"."+ Ext + " no encontrados";
                 }
             }
             catch (Exception ex)
@@ -78,21 +79,26 @@ namespace CleanDataCsharp.Controllers
         {
             try
             {
-                if (parametros.ContenedorN==null || parametros.ExtencionArchivosN==null || parametros.NombresArchivosN.Count==0)
+                if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated==null || parametros.ContenedorRejected==null)
                 {
                     jsonresponse.CodeResponse = 0;
                     jsonresponse.MessageResponse = "Parametros vacios";
                 }
                 else
                 {
-                    Contenedor = parametros.ContenedorN;
+                    Contenedor = parametros.ContenedorSource;
                     ExtencionArchivos = parametros.ExtencionArchivosN;
                     NombresArchivos = parametros.NombresArchivosN;
+                    curated = parametros.ContenedorCurated;
+                    rejected = parametros.ContenedorRejected;
                     Azure = new AzureFunctionsClass(Contenedor, ExtencionArchivos);
+
                     DataValidate = new DataTable();
                     DataValidate.Columns.Add("Archivo Trabajado");
                     DataValidate.Columns.Add("Archivo Curated");
+                    DataValidate.Columns.Add("URL Curated");
                     DataValidate.Columns.Add("Archivo Rejected");
+                    DataValidate.Columns.Add("URL Rejected");
 
                     for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
                     {
@@ -141,20 +147,26 @@ namespace CleanDataCsharp.Controllers
                         try
                         {
                             dataerror = Functions.GetDTErrores();
-                            string limpios, sucios;
+                            string limpios, sucios, Upload;
+                            string URLlimpios = "";
+                            string URLsucios = "";
                             rutaOutput = Azure.GetUrlContainer();
                             FileName = FileName.Replace("Clean", "");
                             if (DT_DataSource.Rows.Count > 0)
                             {
-                                Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Curated_" + FileName+"."+ExtencionArchivos, table: DT_DataSource);
+                                Upload=Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Curated_" + FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: curated);
+                                rutaOutput = rutaOutput.Replace(Contenedor,curated);
+                                URLlimpios = rutaOutput + "Curated_" + FileName + "." + ExtencionArchivos;
                             }
                             if (dataerror.Rows.Count > 0)
                             {
-                                Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName+ "."+ExtencionArchivos, table: dataerror);
+                                Upload=Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + "." + ExtencionArchivos, table: dataerror, ContainerBlobName: rejected);
+                                rutaOutput = rutaOutput.Replace(Contenedor, rejected);
+                                URLsucios = rutaOutput + "Rejected_" + FileName + "." + ExtencionArchivos;
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
                             sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
-                            DataValidate.Rows.Add(FileName, limpios, sucios);
+                            DataValidate.Rows.Add(FileName, limpios, URLlimpios, sucios, URLsucios);
                         }
                         catch (Exception ex)
                         {

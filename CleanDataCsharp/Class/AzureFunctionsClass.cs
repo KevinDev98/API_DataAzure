@@ -12,6 +12,7 @@ using Azure;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage;
+using CleanDataCsharp.Models;
 
 namespace CleanDataCsharp.Class
 {
@@ -21,6 +22,9 @@ namespace CleanDataCsharp.Class
         public static string ExtenFile = "";
         static string FileName;
         FunctionsClass Functions = new FunctionsClass();
+        ResponsesModel jsonresponse = new ResponsesModel();
+        SecurityClass Security = new SecurityClass();
+
         DataTable dataerror = new DataTable();
         DataTable DT_DataSource = new DataTable();
         DataTable DataValidate = new DataTable();
@@ -33,11 +37,11 @@ namespace CleanDataCsharp.Class
             ExtenFile = FileExtension;
         }
         #region Var Azure
-        static string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
-        static string Str_Connect2 = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";
-        //static string ContainerNameA = "containercleaned";
-        string rutaDLSG2_Clean;
-        static BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect);
+        static string Str_Connect = "RABlAGYAYQB1AGwAdABFAG4AZABwAG8AaQBuAHQAcwBQAHIAbwB0AG8AYwBvAGwAPQBoAHQAdABwAHMAOwBBAGMAYwBvAHUAbgB0AE4AYQBtAGUAPQBzAHQAbwByAGEAZwBlAGEAYwBjAG8AdQBuAHQAZQB0AGwAOQA4ADsAQQBjAGMAbwB1AG4AdABLAGUAeQA9ADAATwBkACsAbQBhAGsAZwBoAG0AbwBZAEsATgBIAEMAQgBnAHEAVQBRAHQAbABtADkAdAA3AC8AMAB3AEoAUQBsAFcAWgBiAGoAawBUAHoAOABxAEMASgBVAC8AUQBTAEYASQBUAG4ALwBUAHEAVwBUAFEAYQAvAHoARQBrAFIAQwAzADMAYwB1ADAAcQBTAFcAbgBuAHYAKwBBAFMAdABiAEEANABtACsAUQA9AD0AOwBFAG4AZABwAG8AaQBuAHQAUwB1AGYAZgBpAHgAPQBjAG8AcgBlAC4AdwBpAG4AZABvAHcAcwAuAG4AZQB0AA==";
+        //"DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
+        //"DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";      
+        static string Str_Connect2 = "";
+        string rutaDLSG2_Clean;        
         static BlobContainerClient container;
         static BlobClient BlobStrg;
         #endregion                   
@@ -49,13 +53,13 @@ namespace CleanDataCsharp.Class
             {
                 container.DeleteBlobIfExists(UploadFile.Name);
                 container.UploadBlob(UploadFile.Name, UploadFile.OpenRead());
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Archico cargado correctamente" + UploadFile.Name);
+                //Console.ForegroundColor = ConsoleColor.Green;
+                //Console.WriteLine("Archico cargado correctamente" + UploadFile.Name);
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Azure error: " + ex.Message);
+                //Console.ForegroundColor = ConsoleColor.Red;
+                //Console.WriteLine("Azure error: " + ex.Message);
             }
         }
         public DataTable ReadFileCSVFromAzure(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
@@ -91,14 +95,15 @@ namespace CleanDataCsharp.Class
                 }
                 catch (Exception EX)
                 {
-                    Console.WriteLine(EX.Message);
+                    //Console.WriteLine(EX.Message);
                 }
             }
             return dt;
         } //Lee un archivo del contenedor y lo transforma en DataTable para poder limpiar la data        
         public string GetUrlContainer()//Obtiene la URL del contenedor
         {
-            BlobStrg = new BlobClient(Str_Connect, ContainerNameA, "");
+            Str_Connect2 = Security.DesEncriptar(Str_Connect);
+            BlobStrg = new BlobClient(Str_Connect2, ContainerNameA, "");
             string url = BlobStrg.Uri.ToString() + "/";
             //url = url.Replace(TableName + ".csv", "");
             return url;
@@ -107,6 +112,7 @@ namespace CleanDataCsharp.Class
         {
             try
             {
+                Str_Connect2 = Security.DesEncriptar(Str_Connect);
                 BlobStrg = new BlobClient(Str_Connect, ContainerNameA, FileName + "." + ExtenFile);
                 clientWeb = new WebClient();
                 FileName = BlobStrg.Name;
@@ -119,7 +125,7 @@ namespace CleanDataCsharp.Class
             catch (Exception ex)
             {
                 DataValidate=new DataTable();
-                DataValidate.Columns.Add("ERROR");
+                DataValidate.Columns.Add("ERROR VALIDATE");
                 DataValidate.Rows.Add("ERROR: " + ex.Message+" Validar que el contenedor especificado tenga los permisos de acceso necesarios");
             }           
 
@@ -129,7 +135,8 @@ namespace CleanDataCsharp.Class
         {
             try
             {
-                BlobStrg = new BlobClient(Str_Connect, ContainerNameA, FileName + "." + ExtenFile.ToLower());
+                Str_Connect2 = Security.DesEncriptar(Str_Connect);
+                BlobStrg = new BlobClient(Str_Connect2, ContainerNameA, FileName + "." + ExtenFile.ToLower());
                 clientWeb = new WebClient();
 
                 rutaDLSG2_Clean = BlobStrg.Uri.ToString();
@@ -143,17 +150,19 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                DT_DataSource.Columns.Add("ERROR");
+                DT_DataSource = new DataTable();
+                DT_DataSource.Columns.Add("ERROR TRANSFORM");
                 DT_DataSource.Rows.Add("ERROR: " + ex.Message + " Validar que el contenedor especificado tenga los permisos de acceso necesarios");
             }
 
             return DT_DataSource;
         }
 
-        public void UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
+        public string UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table, string ContainerBlobName) //Carga el archivo a DLS 
         {
             //?restype=container&comp=list
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect);//Se inicia conexión
+            Str_Connect2 = Security.DesEncriptar(Str_Connect);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
             CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
             string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
@@ -207,20 +216,26 @@ namespace CleanDataCsharp.Class
                 }
                 using (var readStream = new MemoryStream(blobBytes))
                 {
-                    ContainerNameA = ContainerNameA; //+ "%3Frestype=container&comp=list";
-                    container = AzureBlobStorage.GetBlobContainerClient(ContainerNameA);
+                    Str_Connect2 = Security.DesEncriptar(Str_Connect);
+                    BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect2);
+
+                    container = AzureBlobStorage.GetBlobContainerClient(ContainerBlobName);
                     container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe
                     container.UploadBlob(FilenameAz, readStream);//Carga el archivo
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Archivo cargado a contenedor correctamente".ToUpper());
-                    Console.ForegroundColor = ConsoleColor.White;
+
+                    jsonresponse.CodeResponse = 1;
+                    jsonresponse.MessageResponse="Proceso Correcto";
                 }
+
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Azure blob error: " + ex.Message);
+                jsonresponse.CodeResponse = 0;
+                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message;
+                //Console.ForegroundColor = ConsoleColor.Red;
+                //Console.WriteLine("Azure blob error: " + ex.Message);
             }
+            return jsonresponse.MessageResponse;
         }
         #endregion
     }

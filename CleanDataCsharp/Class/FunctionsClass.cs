@@ -7,7 +7,7 @@ namespace CleanDataCsharp.Class
     public class FunctionsClass
     {
         #region Variables globales
-        //Console.WriteLine("Hello, World!");
+        ////Console.WriteLine("Hello, World!");
         List<int> indexerror = new List<int>();
         List<string> error = new List<string>();
         DataTable dataerror = new DataTable();
@@ -37,10 +37,10 @@ namespace CleanDataCsharp.Class
             {
                 s = s.Trim().TrimStart().TrimEnd();//Elimina espacios en blanco
             }
-            catch
+            catch(Exception ex)
             {
-                s = "Error";
-                Console.WriteLine("Error eliminando espacios en blanco");
+                s = "error limpiando datos : " + ex.Message;
+                //Console.WriteLine("Error eliminando espacios en blanco");
             }
             return s;
         }
@@ -62,9 +62,10 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
-            catch
+            catch(Exception ex)
             {
-                Console.WriteLine("error eliminando caractares");
+                s = "error limpiando datos : " + ex.Message;
+                //Console.WriteLine("error eliminando caractares");
             }
             return s;
         }
@@ -102,7 +103,7 @@ namespace CleanDataCsharp.Class
             catch (Exception)
             {
                 dte = dte + "-Error fecha";//Si la conversión no se puede realizar devolvera error
-                Console.WriteLine("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
+                //Console.WriteLine("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
             }
             return dte;
         }
@@ -122,7 +123,7 @@ namespace CleanDataCsharp.Class
             {
                 indexerror.Add(index);
                 error.Add("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
-                //Console.WriteLine("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
+                ////Console.WriteLine("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
             }
         }
         #endregion
@@ -148,7 +149,7 @@ namespace CleanDataCsharp.Class
                     indexerror.Add(index);
                     error.Add("Nombre no valido:" + name);
                     TorF = false;
-                    Console.WriteLine("nombre invalido");
+                    //Console.WriteLine("nombre invalido");
                 }
             }
             return TorF;
@@ -173,7 +174,7 @@ namespace CleanDataCsharp.Class
                             indexerror.Add(index);
                             error.Add("Número telefonico no valido:" + s);
                             TorF = false;
-                            //Console.WriteLine("nombre invalido");
+                            ////Console.WriteLine("nombre invalido");
                             break;//se termina el foreach ya que el nombre con un solo número es invalido
                         }
                     }
@@ -182,7 +183,7 @@ namespace CleanDataCsharp.Class
                         indexerror.Add(index);
                         error.Add("Número telefonico no valido:" + s);
                         TorF = false;
-                        //Console.WriteLine("nombre invalido");
+                        ////Console.WriteLine("nombre invalido");
                         break;//se termina el foreach ya que el nombre con un solo número es invalido
                     }
                 }
@@ -299,7 +300,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ERRORONROW dirty rows" + ex.Message);
+                //Console.WriteLine("ERRORONROW dirty rows" + ex.Message);
             }
             return CleanDT;
         }
@@ -372,7 +373,7 @@ namespace CleanDataCsharp.Class
                                 if (IsNumeric(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("ID NO NUMERICO:" + data);
+                                    //Console.WriteLine("ID NO NUMERICO:" + data);
                                 }
                             }
                             if (s == 1)
@@ -380,7 +381,7 @@ namespace CleanDataCsharp.Class
                                 if (Validate_Names(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("MOMBRE CON FORMATO INCORRECTO:" + data);
+                                    //Console.WriteLine("MOMBRE CON FORMATO INCORRECTO:" + data);
                                 }
                             }
                             if (s == 2)
@@ -388,7 +389,7 @@ namespace CleanDataCsharp.Class
                                 if (Validate_RFC(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("RFC CON FORMATO INCORRECTO:" + data);
+                                    //Console.WriteLine("RFC CON FORMATO INCORRECTO:" + data);
                                 }
                             }
                             if (s == 3 || s == 8)
@@ -409,7 +410,7 @@ namespace CleanDataCsharp.Class
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
                                 }
                             }
                             if (s == 4)
@@ -417,7 +418,7 @@ namespace CleanDataCsharp.Class
                                 if (Validate_Email(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("EMAIL CON FORMATO INCORRECTO:" + data);
+                                    //Console.WriteLine("EMAIL CON FORMATO INCORRECTO:" + data);
                                 }
                             }
                             if (s == 5)
@@ -425,14 +426,17 @@ namespace CleanDataCsharp.Class
                                 if (Validate_Phone(data, 10, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("NÚMERO CON FORMATO INCORRECTO:" + data);
+                                    //Console.WriteLine("NÚMERO CON FORMATO INCORRECTO:" + data);
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
+                        dt = new DataTable();
+                        dt.Columns.Add("ERROR");
+                        dt.Rows.Add("error limpiando datos clientes: " + ex.Message);
+                        //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
                     }
                 }
             }
@@ -483,14 +487,14 @@ namespace CleanDataCsharp.Class
                                 if (IsNumeric(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("ID NO NUMERICO:" + data);
+                                    //Console.WriteLine("ID NO NUMERICO:" + data);
                                 }
                             }
                             else if (s == 4)
                             {
                                 //if (data.Contains("-"))
                                 //{
-                                //    Console.WriteLine("valor negativo");
+                                //    //Console.WriteLine("valor negativo");
                                 //}
                                 if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
                                 {
@@ -499,7 +503,7 @@ namespace CleanDataCsharp.Class
                                 else
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("valor negativo");
+                                    //Console.WriteLine("valor negativo");
                                 }
                             }
                             else if (s == 5)
@@ -520,14 +524,20 @@ namespace CleanDataCsharp.Class
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+                                    dt = new DataTable();
+                                    dt.Columns.Add("ERROR");
+                                    dt.Rows.Add("error limpiando datos clientes: " + ex.Message);
+                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("error limpiando datos productos: " + ex.Message + "s:" + s + "z" + z);
+                        dt = new DataTable();
+                        dt.Columns.Add("ERROR");
+                        dt.Rows.Add("error limpiando datos productos: " + ex.Message);
+                        //Console.WriteLine("error limpiando datos productos: " + ex.Message + "s:" + s + "z" + z);
                     }
                 }
             }
@@ -571,7 +581,7 @@ namespace CleanDataCsharp.Class
                                 if (IsNumeric(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("ID NO NUMERICO:" + data);
+                                    //Console.WriteLine("ID NO NUMERICO:" + data);
                                 }
                             }
                             else if (s == 5)
@@ -592,14 +602,20 @@ namespace CleanDataCsharp.Class
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+                                    dt = new DataTable();
+                                    dt.Columns.Add("ERROR");
+                                    dt.Rows.Add("error limpiando datos sucursales: " + ex.Message);
+                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
+                        dt = new DataTable();
+                        dt.Columns.Add("ERROR");
+                        dt.Rows.Add("error limpiando datos sucursales: " + ex.Message);
+                        //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
                     }
                 }
             }
@@ -643,14 +659,14 @@ namespace CleanDataCsharp.Class
                                 if (IsNumeric(data, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("ID NO NUMERICO:" + data);
+                                    //Console.WriteLine("ID NO NUMERICO:" + data);
                                 }
                             }
                             else if (s > 1 & s < 6)
                             {
                                 //if (data.Contains("-"))
                                 //{
-                                //    Console.WriteLine("valor negativo");
+                                //    //Console.WriteLine("valor negativo");
                                 //}
                                 if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
                                 {
@@ -659,7 +675,7 @@ namespace CleanDataCsharp.Class
                                 else
                                 {
                                     ControlErrores(dt, z);
-                                    Console.WriteLine("valor negativo");
+                                    //Console.WriteLine("valor negativo");
                                 }
                             }
                             else if (s == 1)
@@ -680,14 +696,20 @@ namespace CleanDataCsharp.Class
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+                                    dt = new DataTable();
+                                    dt.Columns.Add("ERROR");
+                                    dt.Rows.Add("error limpiando datos ventas: " + ex.Message);
+                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("error limpiando datos Ventas: " + ex.Message + "s:" + s + "z" + z);
+                        dt = new DataTable();
+                        dt.Columns.Add("ERROR");
+                        dt.Rows.Add("error limpiando datos ventas: " + ex.Message);
+                        //Console.WriteLine("error limpiando datos Ventas: " + ex.Message + "s:" + s + "z" + z);
                     }
                 }
             }
