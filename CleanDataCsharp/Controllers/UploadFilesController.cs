@@ -105,7 +105,6 @@ namespace CleanDataCsharp.Controllers
                             if (DT_DataSource.Rows.Count > 0)
                             {
                                 dataerror = new DataTable();
-                                Functions.CopyHeaders(DT_DataSource, dataerror);
                                 DT_DataSource = Functions.CleanDataTableClientes(DT_DataSource);
                             }
 
@@ -115,7 +114,6 @@ namespace CleanDataCsharp.Controllers
                             if (DT_DataSource.Rows.Count > 0)
                             {
                                 dataerror = new DataTable();
-                                Functions.CopyHeaders(DT_DataSource, dataerror);
                                 DT_DataSource = Functions.CleanDataTableProductos(DT_DataSource);
                             }
 
@@ -125,7 +123,6 @@ namespace CleanDataCsharp.Controllers
                             if (DT_DataSource.Rows.Count > 0)
                             {
                                 dataerror = new DataTable();
-                                Functions.CopyHeaders(DT_DataSource, dataerror);
                                 DT_DataSource = Functions.CleanDataTableSucursales(DT_DataSource);
                             }
 
@@ -135,7 +132,6 @@ namespace CleanDataCsharp.Controllers
                             if (DT_DataSource.Rows.Count > 0)
                             {
                                 dataerror = new DataTable();
-                                Functions.CopyHeaders(DT_DataSource, dataerror);
                                 DT_DataSource = Functions.CleanDataTableVentas(DT_DataSource);
                             }
 
@@ -144,16 +140,17 @@ namespace CleanDataCsharp.Controllers
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
                         try
                         {
+                            dataerror = Functions.GetDTErrores();
                             string limpios, sucios;
                             rutaOutput = Azure.GetUrlContainer();
                             FileName = FileName.Replace("Clean", "");
                             if (DT_DataSource.Rows.Count > 0)
                             {
-                                Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Curated_" + FileName, table: DT_DataSource);
+                                Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Curated_" + FileName+"."+ExtencionArchivos, table: DT_DataSource);
                             }
                             if (dataerror.Rows.Count > 0)
                             {
-                                Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName, table: dataerror);
+                                Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName+ "."+ExtencionArchivos, table: dataerror);
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
                             sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();

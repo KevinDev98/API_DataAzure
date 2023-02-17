@@ -310,9 +310,15 @@ namespace CleanDataCsharp.Class
             int LastCol = 0;
             idxRow = indexerror[0];//obtiene el indice de la fila con el error
             row = DtErrores.Rows[idxRow];//guarda toda la fila del error
-            indexerror.RemoveAt(0);//Elimina el indice de la fila erronea de la lista
-
+            indexerror.RemoveAt(0);//Elimina el indice de la fila erronea de la lista            
             dataerror.ImportRow(row);//agraga la fila erronea al data table de error
+            try
+            {
+                dataerror.Columns.Add("Detalle error");//Agrega la columna del error
+            }
+            catch (Exception)
+            {
+            }
             dataerror.AcceptChanges();//Guardar cambios
 
             idxRow = dataerror.Rows.Count - 1; //Obtiene indice la fila actual de tabla errores 
@@ -323,14 +329,18 @@ namespace CleanDataCsharp.Class
 
             DtErrores.Rows[z][0] = "ERRORONROW"; //Define fila como erronea
             DtErrores.AcceptChanges();
-        }        
+        }   
+        public DataTable GetDTErrores()
+        {
+            return dataerror;
+        }
         #endregion
         #region Reglas aplicadas 
         public DataTable CleanDataTableClientes(DataTable dt)
         {
             string data = "";
             dataerror = new DataTable();
-            dataerror.Columns.Add("Detalle error");//Agrega la columna del error
+            CopyHeaders(dt, dataerror);
             for (int z = 0; z < dt.Rows.Count; z++)
             {
                 for (int s = 0; s < dt.Columns.Count; s++)
@@ -433,7 +443,7 @@ namespace CleanDataCsharp.Class
         {
             string data = "";
             dataerror = new DataTable();
-            dataerror.Columns.Add("Detalle error");//Agrega la columna del error
+            CopyHeaders(dt, dataerror);
             for (int z = 0; z < dt.Rows.Count; z++)//Filas
             {
                 for (int s = 0; s < dt.Columns.Count; s++)
@@ -528,7 +538,7 @@ namespace CleanDataCsharp.Class
         {
             string data = "";
             dataerror = new DataTable();
-            dataerror.Columns.Add("Detalle error");//Agrega la columna del error
+            CopyHeaders(dt, dataerror);
             for (int z = 0; z < dt.Rows.Count; z++)//Filas
             {
                 for (int s = 0; s < dt.Columns.Count; s++)
@@ -600,7 +610,7 @@ namespace CleanDataCsharp.Class
         {
             string data = "";
             dataerror = new DataTable();
-            dataerror.Columns.Add("Detalle error");//Agrega la columna del error
+            CopyHeaders(dt, dataerror);
             for (int z = 0; z < dt.Rows.Count; z++)//Filas
             {
                 for (int s = 0; s < dt.Columns.Count; s++)

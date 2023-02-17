@@ -38,7 +38,7 @@ namespace CleanDataCsharp.Class
         //static string ContainerNameA = "containercleaned";
         string rutaDLSG2_Clean;
         static BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect);
-        static BlobContainerClient container = AzureBlobStorage.GetBlobContainerClient(ContainerNameA);
+        static BlobContainerClient container;
         static BlobClient BlobStrg;
         #endregion                   
 
@@ -152,7 +152,7 @@ namespace CleanDataCsharp.Class
 
         public void UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
         {
-
+            //?restype=container&comp=list
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect);//Se inicia conexión
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
             CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
@@ -207,8 +207,10 @@ namespace CleanDataCsharp.Class
                 }
                 using (var readStream = new MemoryStream(blobBytes))
                 {
-                    container.DeleteBlobIfExists(FilenameAz+ ExtenFile); //Borra el archivo si ya existe
-                    container.UploadBlob(FilenameAz+ ExtenFile, readStream);//Carga el archivo
+                    ContainerNameA = ContainerNameA; //+ "%3Frestype=container&comp=list";
+                    container = AzureBlobStorage.GetBlobContainerClient(ContainerNameA);
+                    container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe
+                    container.UploadBlob(FilenameAz, readStream);//Carga el archivo
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Archivo cargado a contenedor correctamente".ToUpper());
                     Console.ForegroundColor = ConsoleColor.White;
