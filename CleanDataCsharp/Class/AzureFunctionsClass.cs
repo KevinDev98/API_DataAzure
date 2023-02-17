@@ -41,8 +41,6 @@ namespace CleanDataCsharp.Class
         }
         #region Var Azure
         static string Str_Connect = "RABlAGYAYQB1AGwAdABFAG4AZABwAG8AaQBuAHQAcwBQAHIAbwB0AG8AYwBvAGwAPQBoAHQAdABwAHMAOwBBAGMAYwBvAHUAbgB0AE4AYQBtAGUAPQBzAHQAbwByAGEAZwBlAGEAYwBjAG8AdQBuAHQAZQB0AGwAOQA4ADsAQQBjAGMAbwB1AG4AdABLAGUAeQA9ADAATwBkACsAbQBhAGsAZwBoAG0AbwBZAEsATgBIAEMAQgBnAHEAVQBRAHQAbABtADkAdAA3AC8AMAB3AEoAUQBsAFcAWgBiAGoAawBUAHoAOABxAEMASgBVAC8AUQBTAEYASQBUAG4ALwBUAHEAVwBUAFEAYQAvAHoARQBrAFIAQwAzADMAYwB1ADAAcQBTAFcAbgBuAHYAKwBBAFMAdABiAEEANABtACsAUQA9AD0AOwBFAG4AZABwAG8AaQBuAHQAUwB1AGYAZgBpAHgAPQBjAG8AcgBlAC4AdwBpAG4AZABvAHcAcwAuAG4AZQB0AA==";
-        //"DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
-        //"DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";      
         static string Str_Connect2 = "";
         string rutaDLSG2_Clean;        
         static BlobContainerClient container;

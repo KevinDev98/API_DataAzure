@@ -75,7 +75,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("DataCleanVentas")]
-        public IActionResult CleanDataVentas(ParametrosModel parametros)
+        public IActionResult CleanDataVentas(CuratedModel parametros)
         {
             try
             {
@@ -184,22 +184,20 @@ namespace CleanDataCsharp.Controllers
         }
         [HttpPost]
         [Route("DataClean")]
-        public IActionResult CleanData(ParametrosModel parametros)
+        public IActionResult CleanData(CleanModel parametros)
         {
             try
             {
-                if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated == null || parametros.ContenedorRejected == null)
+                if (parametros.Contenedor == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0)
                 {
                     jsonresponse.CodeResponse = 0;
                     jsonresponse.MessageResponse = "Parametros vacios";
                 }
                 else
                 {
-                    Contenedor = parametros.ContenedorSource;
+                    Contenedor = parametros.Contenedor;
                     ExtencionArchivos = parametros.ExtencionArchivosN;
                     NombresArchivos = parametros.NombresArchivosN;
-                    curated = parametros.ContenedorCurated;
-                    rejected = parametros.ContenedorRejected;
                     Azure = new AzureFunctionsClass(Contenedor, ExtencionArchivos);
 
                     DataValidate = new DataTable();

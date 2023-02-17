@@ -37,7 +37,7 @@ namespace CleanDataCsharp.Class
             {
                 s = s.Trim().TrimStart().TrimEnd();//Elimina espacios en blanco
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 s = "error limpiando datos : " + ex.Message;
                 //Console.WriteLine("Error eliminando espacios en blanco");
@@ -62,7 +62,7 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 s = "error limpiando datos : " + ex.Message;
                 //Console.WriteLine("error eliminando caractares");
@@ -330,10 +330,26 @@ namespace CleanDataCsharp.Class
 
             DtErrores.Rows[z][0] = "ERRORONROW"; //Define fila como erronea
             DtErrores.AcceptChanges();
-        }   
+        }
         public DataTable GetDTErrores()
         {
             return dataerror;
+        }
+        public DataTable DropDuplicates(DataTable dt)
+        {
+            try
+            {
+                //DataTable con los reqistros repetidos (dt)
+                //Filtramos los registros únicos en la variable var.
+                var NoDuplicate = dt.AsEnumerable().Distinct(DataRowComparer.Default);
+                //Lo copiamos a otra DataTable
+                DataTable data = NoDuplicate.CopyToDataTable();
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return dt;
+            }
         }
         #endregion
         #region Reglas aplicadas 
@@ -440,9 +456,9 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
+            dt = DropDuplicates(dt);//elimina filas duplicadas
             return dt;
         }
-
         public DataTable CleanDataTableProductos(DataTable dt)
         {
             string data = "";
@@ -541,9 +557,9 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
+            dt = DropDuplicates(dt);//elimina filas duplicadas
             return dt;
         }
-
         public DataTable CleanDataTableSucursales(DataTable dt)
         {
             string data = "";
@@ -619,9 +635,9 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
+            dt = DropDuplicates(dt);//elimina filas duplicadas
             return dt;
         }
-
         public DataTable CleanDataTableVentas(DataTable dt)
         {
             string data = "";
@@ -713,9 +729,9 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
+            dt = DropDuplicates(dt);//elimina filas duplicadas
             return dt;
         }
-
         public DataTable CleanDataTable(DataTable dt)
         {
             string data = "";
@@ -755,6 +771,7 @@ namespace CleanDataCsharp.Class
                     }
                 }
             }
+            dt = DropDuplicates(dt);//elimina filas duplicadas
             return dt;
         }
         #endregion
