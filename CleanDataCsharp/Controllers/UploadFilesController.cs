@@ -15,7 +15,6 @@ using CleanDataCsharp.Class;
 using CleanDataCsharp.Models;
 using static System.Net.Mime.MediaTypeNames;
 using System.ComponentModel;
-using Unipluss.Sign.ExternalContract.Entities;
 
 namespace CleanDataCsharp.Controllers
 {
