@@ -39,6 +39,7 @@ namespace CleanDataCsharp.Controllers
         string Contenedor, curated, rejected;
         string ExtencionArchivos;
         List<string> NombresArchivos = new List<string>();
+        HttpResponseMessage response = new HttpResponseMessage();
 
         [HttpGet]
         [Route("ExisteClientes")]
@@ -55,18 +56,21 @@ namespace CleanDataCsharp.Controllers
             {
                 if (TorF)
                 {
+                    response.StatusCode = HttpStatusCode.BadRequest;
                     jsonresponse.CodeResponse = 1;
                     jsonresponse.MessageResponse = "Contenedor " + Container + " y archivo encontrado " + File + "." + Ext + " encontrados";
                     jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                 }
                 else
                 {
+                    response.StatusCode = HttpStatusCode.OK;
                     jsonresponse.CodeResponse = 0;
                     jsonresponse.MessageResponse = "Contenedor " + Container + " y/o archivo " + File + "." + Ext + " no encontrados";
                 }
             }
             catch (Exception ex)
             {
+                response.StatusCode = HttpStatusCode.BadRequest;
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "Ocurrio un error en el proceso: " + ex.Message;
             }
@@ -191,10 +195,12 @@ namespace CleanDataCsharp.Controllers
                         }
                         catch (Exception ex)
                         {
+                            response.StatusCode = HttpStatusCode.BadRequest;
                             jsonresponse.CodeResponse = 0;
                             jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
                         }
                     }
+                    response.StatusCode = HttpStatusCode.OK;
                     jsonresponse.CodeResponse = 1;
                     jsonresponse.MessageResponse = "Proceso Terminado con Exito";
                     jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
@@ -202,6 +208,7 @@ namespace CleanDataCsharp.Controllers
             }
             catch (Exception ex)
             {
+                response.StatusCode = HttpStatusCode.BadRequest;
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message;
             }
@@ -211,8 +218,7 @@ namespace CleanDataCsharp.Controllers
         [HttpPost]
         [Route("DataProcessing")]
         public IActionResult DataProcessing(CuratedModel parametros)
-        {
-            HttpResponseMessage response = new HttpResponseMessage();
+        {            
             try
             {
                 if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated == null || parametros.ContenedorRejected == null)
@@ -368,10 +374,12 @@ namespace CleanDataCsharp.Controllers
                         }
                         catch (Exception ex)
                         {
+                            response.StatusCode = HttpStatusCode.BadRequest;
                             jsonresponse.CodeResponse = 0;
                             jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
                         }
                     }
+                    response.StatusCode = HttpStatusCode.OK;
                     jsonresponse.CodeResponse = 1;
                     jsonresponse.MessageResponse = "Proceso Terminado con Exito";
                     jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
@@ -379,6 +387,7 @@ namespace CleanDataCsharp.Controllers
             }
             catch (Exception ex)
             {
+                response.StatusCode = HttpStatusCode.BadRequest;
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message;
             }
