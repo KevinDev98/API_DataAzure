@@ -15,6 +15,7 @@ using CleanDataCsharp.Class;
 using CleanDataCsharp.Models;
 using static System.Net.Mime.MediaTypeNames;
 using System.ComponentModel;
+using Unipluss.Sign.ExternalContract.Entities;
 
 namespace CleanDataCsharp.Controllers
 {
@@ -150,7 +151,6 @@ namespace CleanDataCsharp.Controllers
                             string limpios, sucios, Upload;
                             string URLlimpios = "";
                             string URLsucios = "";
-                            rutaOutput = Azure.GetUrlContainer();
                             FileName = FileName.Replace("Clean", "");
                             int errorproceso = 0;
                             if (DT_DataSource.Rows.Count > 0)
@@ -158,27 +158,30 @@ namespace CleanDataCsharp.Controllers
                                 if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                                 {
                                     errorproceso = 1;
-                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                    rutaOutput = Azure.GetUrlContainer();
                                     rutaOutput = rutaOutput.Replace(Contenedor, rejected);
                                     URLsucios = rutaOutput + ExtencionArchivos + "_Rejected_" + FileName + ".csv";
                                 }
                                 else
                                 {
                                     Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Curated_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: curated);
+                                    rutaOutput = Azure.GetUrlContainer();
                                     rutaOutput = rutaOutput.Replace(Contenedor, curated);
                                     URLlimpios = rutaOutput + ExtencionArchivos + "_Curated_" + FileName + ".csv";
                                 }
                             }
                             if (dataerror.Rows.Count > 0)
                             {
-                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                rutaOutput = Azure.GetUrlContainer();
                                 rutaOutput = rutaOutput.Replace(Contenedor, rejected);
                                 URLsucios = rutaOutput + ExtencionArchivos + "_Rejected_" + FileName + ".csv";
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
                             if (errorproceso == 1)
                             {
-                                sucios = "Filas sucuias:" + DT_DataSource.Rows.Count.ToString()+". Archivo original dañado";
+                                sucios = "Filas sucuias:" + DT_DataSource.Rows.Count.ToString() + ". Archivo original dañado";
                             }
                             else
                             {
@@ -204,6 +207,108 @@ namespace CleanDataCsharp.Controllers
             }
             return Json(jsonresponse);
         }
+
+        [HttpPost]
+        [Route("DataProcessing")]
+        public IActionResult DataProcessing(CuratedModel parametros)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            try
+            {
+                if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated == null || parametros.ContenedorRejected == null)
+                {
+                    jsonresponse.CodeResponse = 0;
+                    jsonresponse.MessageResponse = "Parametros vacios";
+                }
+                else
+                {
+                    Contenedor = parametros.ContenedorSource;
+                    ExtencionArchivos = parametros.ExtencionArchivosN;
+                    NombresArchivos = parametros.NombresArchivosN;
+                    curated = parametros.ContenedorCurated;
+                    rejected = parametros.ContenedorRejected;
+                    Azure = new AzureFunctionsClass(Contenedor, ExtencionArchivos);
+
+                    DataValidate = new DataTable();
+                    DataValidate.Columns.Add("Archivo Trabajado");
+                    DataValidate.Columns.Add("Archivo Curated");
+                    DataValidate.Columns.Add("URL Curated");
+                    DataValidate.Columns.Add("Archivo Rejected");
+                    DataValidate.Columns.Add("URL Rejected");
+
+                    for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                    {
+                        FileName = NombresArchivos[k];
+                        DT_DataSource = new DataTable();
+                        DT_DataSource = Azure.TransformFileforAzure(FileName);
+                        DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                        DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
+                        try
+                        {
+                            dataerror = Functions.GetDTErrores();
+                            string limpios, sucios, Upload;
+                            string URLlimpios = "";
+                            string URLsucios = "";                            
+                            FileName = FileName.Replace("Clean", "");
+                            int errorproceso = 0;
+                            if (DT_DataSource.Rows.Count > 0)
+                            {                                
+                                if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                                {
+                                    errorproceso = 1;
+                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                    rutaOutput = Azure.GetUrlContainer();
+                                    rutaOutput = rutaOutput.Replace(Contenedor, rejected);
+                                    URLsucios = rutaOutput + ExtencionArchivos + "_Rejected_" + FileName + ".csv";
+                                }
+                                else
+                                {
+                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Curated_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: curated);
+                                    rutaOutput = Azure.GetUrlContainer();
+                                    rutaOutput = rutaOutput.Replace(Contenedor, curated);
+                                    URLlimpios = rutaOutput + ExtencionArchivos + "_Curated_" + FileName + ".csv";
+                                }
+                            }
+                            if (dataerror.Rows.Count > 0)
+                            {
+                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: ExtencionArchivos + "_Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                rutaOutput = Azure.GetUrlContainer();
+                                rutaOutput = rutaOutput.Replace(Contenedor, rejected);
+                                URLsucios = rutaOutput + ExtencionArchivos + "_Rejected_" + FileName + ".csv";
+                            }
+                            limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
+                            if (errorproceso == 1)
+                            {
+                                sucios = "Filas sucuias:" + DT_DataSource.Rows.Count.ToString() + ". Archivo original dañado";
+                            }
+                            else
+                            {
+                                sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
+                            }
+                            DataValidate.Rows.Add(FileName, limpios, URLlimpios, sucios, URLsucios);
+                        }
+                        catch (Exception ex)
+                        {
+                            response.StatusCode = HttpStatusCode.BadRequest;
+                            jsonresponse.CodeResponse = 0;
+                            jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
+                        }
+                    }                    
+                    response.StatusCode = HttpStatusCode.OK;
+                    jsonresponse.CodeResponse = 1;
+                    jsonresponse.MessageResponse = "Proceso Terminado con Exito";
+                    jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.StatusCode = HttpStatusCode.BadRequest;
+                jsonresponse.CodeResponse = 0;
+                jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message;
+            }
+            return Json(jsonresponse);
+        }
+
         [HttpPost]
         [Route("DataClean")]
         public IActionResult CleanData(CleanModel parametros)
@@ -236,7 +341,6 @@ namespace CleanDataCsharp.Controllers
 
                         FileName = NombresArchivos[k];
                         DT_DataSource = Azure.TransformFileforAzure(FileName);
-
                         DT_DataSource = Functions.CleanDataTable(DT_DataSource);
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
                         try
@@ -245,16 +349,17 @@ namespace CleanDataCsharp.Controllers
                             string limpios, sucios, Upload;
                             string URLlimpios = "";
                             string URLsucios = "";
-                            rutaOutput = Azure.GetUrlContainer();
                             FileName = FileName.Replace("Clean", "");
                             if (DT_DataSource.Rows.Count > 0)
                             {
                                 Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Clean" + FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: Contenedor);
+                                rutaOutput = Azure.GetUrlContainer();
                                 URLlimpios = rutaOutput + "Clean" + FileName + "." + ExtencionArchivos;
                             }
                             if (dataerror.Rows.Count > 0)
                             {
                                 Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "NoClean_" + FileName + "." + ExtencionArchivos, table: dataerror, ContainerBlobName: rejected);
+                                rutaOutput = Azure.GetUrlContainer();
                                 URLsucios = rutaOutput + "NoClean_" + FileName + "." + ExtencionArchivos;
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();

@@ -769,6 +769,48 @@ namespace CleanDataCsharp.Class
                             else
                             {
                                 dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
+                                if ((dt.Columns[s].DataType.Name == "DateTime" || dt.Columns[s].DataType.Name == "Date") || (dt.Columns[s].ColumnName.ToLower().Contains("fecha") || dt.Columns[s].ColumnName.ToLower().Contains("date")))
+                                {
+                                    dt.Rows[z][s]=Change_Date_Format(dt.Rows[z][s].ToString(), z);
+                                    if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
+                                    {
+                                        indexerror.Add(z);
+                                        error.Add("Fecha invalida: " + dt.Rows[z][s].ToString() + " el formato debe ser dd/MM/YYYY");
+                                        ControlErrores(dt, z);
+                                    }
+                                }
+                                else if (dt.Columns[s].ColumnName.ToLower().Contains("rfc"))
+                                {
+                                    if (Validate_RFC(dt.Rows[z][s].ToString(), z) == false)
+                                    {
+                                        ControlErrores(dt, z);
+                                    }
+                                }
+                                else if (dt.Columns[s].ColumnName.ToLower().Contains("email"))
+                                {
+                                    if (Validate_Email(dt.Rows[z][s].ToString(), z) == false)
+                                    {
+                                        ControlErrores(dt, z);
+                                    }
+                                }
+                                else if (dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo"))
+                                {
+                                    if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
+                                    {
+                                        ControlErrores(dt, z);
+                                    }
+                                }
+                                else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                                {
+                                    if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
+                                    {
+                                        dt.Rows[z][s] = FormatDecimal(dt.Rows[z][s].ToString());
+                                    }
+                                    else
+                                    {
+                                        ControlErrores(dt, z);
+                                    }
+                                }
                             }
                         }
                     }
