@@ -35,7 +35,7 @@ namespace CleanDataCsharp.Controllers
         DataTable DT_DataSource = new DataTable();
         //string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
         //string Str_Connect2 = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";
-        string Contenedor, curated, rejected;
+        string Contenedor, clean, curated, rejected;
         string ExtencionArchivos;
         List<string> NombresArchivos = new List<string>();
         HttpResponseMessage response = new HttpResponseMessage();
@@ -220,6 +220,9 @@ namespace CleanDataCsharp.Controllers
         {            
             try
             {
+                HttpClient httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromMinutes(10);
+
                 if (parametros.ContenedorSource == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorCurated == null || parametros.ContenedorRejected == null)
                 {
                     jsonresponse.CodeResponse = 0;
@@ -246,6 +249,7 @@ namespace CleanDataCsharp.Controllers
                         FileName = NombresArchivos[k];
                         DT_DataSource = new DataTable();
                         DT_DataSource = Azure.TransformFileforAzure(FileName);
+                        DT_DataSource=Functions.DropDuplicates(DT_DataSource);
                         DT_DataSource = Functions.CleanDataTable(DT_DataSource);
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
                         try
@@ -316,28 +320,26 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("DataClean")]
-        public IActionResult CleanData(CleanModel parametros)
+        public IActionResult CleanData(CleanModel parametros) //from raw to clean
         {
             try
             {
-                if (parametros.Contenedor == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0)
+                if (parametros.ContenedorRAW == null || parametros.ContenedorClean == null || parametros.ExtencionArchivosN == null || parametros.NombresArchivosN.Count == 0)
                 {
                     jsonresponse.CodeResponse = 0;
                     jsonresponse.MessageResponse = "Parametros vacios";
                 }
                 else
                 {
-                    Contenedor = parametros.Contenedor;
+                    Contenedor = parametros.ContenedorRAW;
+                    clean=parametros.ContenedorClean;
                     ExtencionArchivos = parametros.ExtencionArchivosN;
                     NombresArchivos = parametros.NombresArchivosN;
                     Azure = new AzureFunctionsClass(Contenedor, ExtencionArchivos);
 
                     DataValidate = new DataTable();
                     DataValidate.Columns.Add("Archivo Trabajado");
-                    DataValidate.Columns.Add("Archivo Curated");
-                    DataValidate.Columns.Add("URL Curated");
-                    DataValidate.Columns.Add("Archivo Rejected");
-                    DataValidate.Columns.Add("URL Rejected");
+                    DataValidate.Columns.Add("URL Archivo");
 
                     for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
                     {
@@ -346,30 +348,21 @@ namespace CleanDataCsharp.Controllers
 
                         FileName = NombresArchivos[k];
                         DT_DataSource = Azure.TransformFileforAzure(FileName);
-                        DT_DataSource = Functions.CleanDataTable(DT_DataSource);
-                        DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
+                        DT_DataSource = Functions.DropDuplicates(DT_DataSource);
                         try
                         {
                             dataerror = Functions.GetDTErrores();
-                            string limpios, sucios, Upload;
-                            string URLlimpios = "";
-                            string URLsucios = "";
-                            FileName = FileName.Replace("Clean", "");
+                            string limpios, Upload;
+                            string URL = "";
+                            //FileName = FileName.Replace("Clean", "");
                             if (DT_DataSource.Rows.Count > 0)
                             {
-                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Clean" + FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: Contenedor);
+                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: clean);
                                 rutaOutput = Azure.GetUrlContainer();
-                                URLlimpios = rutaOutput + "Clean" + FileName + "." + ExtencionArchivos;
-                            }
-                            if (dataerror.Rows.Count > 0)
-                            {
-                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "NoClean_" + FileName + "." + ExtencionArchivos, table: dataerror, ContainerBlobName: rejected);
-                                rutaOutput = Azure.GetUrlContainer();
-                                URLsucios = rutaOutput + "NoClean_" + FileName + "." + ExtencionArchivos;
+                                URL = rutaOutput + FileName + "." + ExtencionArchivos;
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
-                            sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
-                            DataValidate.Rows.Add(FileName, limpios, URLlimpios, sucios, URLsucios);
+                            DataValidate.Rows.Add(FileName, URL);
                         }
                         catch (Exception ex)
                         {
