@@ -359,6 +359,7 @@ namespace CleanDataCsharp.Controllers
                             {
                                 Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + "." + ExtencionArchivos, table: DT_DataSource, ContainerBlobName: clean);
                                 rutaOutput = Azure.GetUrlContainer();
+                                rutaOutput = rutaOutput.Replace(Contenedor, clean);
                                 URL = rutaOutput + FileName + "." + ExtencionArchivos;
                             }
                             limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
