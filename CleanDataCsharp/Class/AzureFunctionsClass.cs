@@ -16,6 +16,8 @@ using CleanDataCsharp.Models;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Hosting.Server;
 using System.Xml;
+using Azure.Storage.Blobs.Models;
+//using Microsoft.Azure.Storage;
 
 namespace CleanDataCsharp.Class
 {
@@ -23,7 +25,7 @@ namespace CleanDataCsharp.Class
     {
         static string ContainerNameA = "";
         public static string ExtenFile = "";
-        static string FileName;
+        //static string FileName;
         FunctionsClass Functions = new FunctionsClass();
         ResponsesModel jsonresponse = new ResponsesModel();
         SecurityClass Security = new SecurityClass();
@@ -34,10 +36,10 @@ namespace CleanDataCsharp.Class
         WebClient clientWeb;
         Stream streamAzure;
         StreamReader readerFileAzure;
-        public AzureFunctionsClass(string ContainerName, string FileExtension)
+        public AzureFunctionsClass(string ContainerName)//, string FileExtension)
         {
             ContainerNameA = ContainerName;
-            ExtenFile = FileExtension;
+            //ExtenFile = FileExtension;
         }
         #region Var Azure
         static string Str_Connect = "RABlAGYAYQB1AGwAdABFAG4AZABwAG8AaQBuAHQAcwBQAHIAbwB0AG8AYwBvAGwAPQBoAHQAdABwAHMAOwBBAGMAYwBvAHUAbgB0AE4AYQBtAGUAPQBzAHQAbwByAGEAZwBlAGEAYwBjAG8AdQBuAHQAZQB0AGwAOQA4ADsAQQBjAGMAbwB1AG4AdABLAGUAeQA9ADAATwBkACsAbQBhAGsAZwBoAG0AbwBZAEsATgBIAEMAQgBnAHEAVQBRAHQAbABtADkAdAA3AC8AMAB3AEoAUQBsAFcAWgBiAGoAawBUAHoAOABxAEMASgBVAC8AUQBTAEYASQBUAG4ALwBUAHEAVwBUAFEAYQAvAHoARQBrAFIAQwAzADMAYwB1ADAAcQBTAFcAbgBuAHYAKwBBAFMAdABiAEEANABtACsAUQA9AD0AOwBFAG4AZABwAG8AaQBuAHQAUwB1AGYAZgBpAHgAPQBjAG8AcgBlAC4AdwBpAG4AZABvAHcAcwAuAG4AZQB0AA==";
@@ -100,22 +102,22 @@ namespace CleanDataCsharp.Class
             try
             {
                 Str_Connect2 = Security.DesEncriptar(Str_Connect);
-                BlobStrg = new BlobClient(Str_Connect2, ContainerNameA, FileName + "." + ExtenFile.ToLower());
+                BlobStrg = new BlobClient(Str_Connect2, ContainerNameA, FileName);
                 clientWeb = new WebClient();
 
                 rutaDLSG2_Clean = BlobStrg.Uri.ToString();
                 FileName = BlobStrg.Name;
                 streamAzure = clientWeb.OpenRead(rutaDLSG2_Clean);//Transforma los datos del archivo de origen
                 readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
-                if (ExtenFile.ToLower() == "csv")
+                if (FileName.ToLower().Contains(".csv"))
                 {
                     DT_DataSource = Functions.FromCsvForDataTable(readerFileAzure);//Manda a transformar el archivo a DataTable
                 }
-                else if (ExtenFile.ToLower() == "xml")
+                else if (FileName.ToLower().Contains(".xml"))
                 {
                     DT_DataSource = Functions.FromXlmToDataTable(readerFileAzure);
                 }
-                else if (ExtenFile.ToLower() == "json")
+                else if (FileName.ToLower().Contains(".json"))
                 {
                     DT_DataSource = Functions.FromJsonToDataTable(readerFileAzure);
                 }
@@ -129,7 +131,19 @@ namespace CleanDataCsharp.Class
 
             return DT_DataSource;
         }
-
+        public List<String> ListFile(string PathBlob, string ContainerBlobName)
+        {
+            List<String> listName = new List<String>();
+            Str_Connect2 = Security.DesEncriptar(Str_Connect);
+            BlobContainerClient containerClient = new BlobContainerClient(Str_Connect2, ContainerNameA);//Recibe cadena de conexion y nombre de contenedor
+            var ListblobFiles = containerClient.GetBlobs();
+            foreach (BlobItem blobItem in ListblobFiles)
+            {
+                listName.Add(blobItem.Name);
+            }
+            //container.UploadBlob();
+            return listName;
+        }
         public string UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table, string ContainerBlobName) //Carga el archivo a DLS 
         {
             //?restype=container&comp=list
@@ -140,35 +154,45 @@ namespace CleanDataCsharp.Class
             string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
             CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
             var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
-
             try
             {
                 Str_Connect2 = Security.DesEncriptar(Str_Connect);
                 BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect2);
                 container = AzureBlobStorage.GetBlobContainerClient(ContainerBlobName);
                 container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe
-                byte[] blobBytes=null;
+                byte[] blobBytes = null;
                 blobBytes = Functions.FromCSVtoFile(table);
                 using (var readStream = new MemoryStream(blobBytes))
                 {
                     container.UploadBlob(FilenameAz, readStream);//Carga el archivo                        
                 }
-                //if (ExtenFile == "csv")
-                //{
-                //    blobBytes = Functions.FromCSVtoFile(table);
-                //    using (var readStream = new MemoryStream(blobBytes))
-                //    {                        
-                //        container.UploadBlob(FilenameAz, readStream);//Carga el archivo                        
-                //    }
-                //}
-                //else if (ExtenFile == "xml")
-                //{
-                //    XmlDocument xmlFile = Functions.FromXMLtoFile(table);
-                //    using (var readStream = new MemoryStream(xmlFile))
-                //    {
-                //        container.UploadBlob(FilenameAz, xmlFile);//Carga el archivo                        
-                //    }
-                //}
+                jsonresponse.CodeResponse = 1;
+                jsonresponse.MessageResponse = "Proceso Correcto";
+            }
+            catch (Exception ex)
+            {
+                jsonresponse.CodeResponse = 0;
+                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message;
+                //Console.ForegroundColor = ConsoleColor.Red;
+                //Console.WriteLine("Azure blob error: " + ex.Message);
+            }
+            return jsonresponse.MessageResponse;
+        }
+        public string RemoveFiles(string PathBlob, string FilenameAz, string ContainerBlobName)
+        {
+            Str_Connect2 = Security.DesEncriptar(Str_Connect);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
+            CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
+            string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
+            CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
+            var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
+            try
+            {
+                Str_Connect2 = Security.DesEncriptar(Str_Connect);
+                BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect2);
+                container = AzureBlobStorage.GetBlobContainerClient(ContainerBlobName);
+                container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe                
                 jsonresponse.CodeResponse = 1;
                 jsonresponse.MessageResponse = "Proceso Correcto";
             }

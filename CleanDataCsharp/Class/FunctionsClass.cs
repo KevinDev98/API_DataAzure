@@ -744,12 +744,13 @@ namespace CleanDataCsharp.Class
             string data = "";
             dataerror = new DataTable();
             CopyHeaders(dt, dataerror);
-            for (int z = 0; z < dt.Rows.Count; z++)
+            try
             {
-                for (int s = 0; s < dt.Columns.Count; s++)
+                for (int z = 0; z < dt.Rows.Count; z++)
                 {
-                    try
+                    for (int s = 0; s < dt.Columns.Count; s++)
                     {
+
                         if (dt.Rows[z][s] == null)//Valida si la celda es null
                         {
                             isnull = true;
@@ -760,71 +761,69 @@ namespace CleanDataCsharp.Class
                         else
                         {
                             data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
-                            if (string.IsNullOrEmpty(data))
+                            dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
+                            if ((dt.Columns[s].DataType.Name == "Date") || (dt.Columns[s].ColumnName.ToLower().Contains("fecha") || dt.Columns[s].ColumnName.ToLower().Contains("date")))
                             {
-                                indexerror.Add(z);
-                                error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                                ControlErrores(dt, z);
-                            }
-                            else
-                            {
-                                dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
-                                if ((dt.Columns[s].DataType.Name == "DateTime" || dt.Columns[s].DataType.Name == "Date") || (dt.Columns[s].ColumnName.ToLower().Contains("fecha") || dt.Columns[s].ColumnName.ToLower().Contains("date")))
+                                dt.Rows[z][s] = Change_Date_Format(dt.Rows[z][s].ToString(), z);
+                                if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
                                 {
-                                    dt.Rows[z][s]=Change_Date_Format(dt.Rows[z][s].ToString(), z);
-                                    if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
-                                    {
-                                        indexerror.Add(z);
-                                        error.Add("Fecha invalida: " + dt.Rows[z][s].ToString() + " el formato debe ser dd/MM/YYYY");
-                                        ControlErrores(dt, z);
-                                    }
-                                }
-                                else if (dt.Columns[s].ColumnName.ToLower().Contains("rfc"))
-                                {
-                                    if (Validate_RFC(dt.Rows[z][s].ToString(), z) == false)
-                                    {
-                                        ControlErrores(dt, z);
-                                    }
-                                }
-                                else if (dt.Columns[s].ColumnName.ToLower().Contains("email"))
-                                {
-                                    if (Validate_Email(dt.Rows[z][s].ToString(), z) == false)
-                                    {
-                                        ControlErrores(dt, z);
-                                    }
-                                }
-                                else if (dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo"))
-                                {
-                                    if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
-                                    {
-                                        ControlErrores(dt, z);
-                                    }
-                                }
-                                else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
-                                {
-                                    if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
-                                    {
-                                        dt.Rows[z][s] = FormatDecimal(dt.Rows[z][s].ToString());
-                                    }
-                                    else
-                                    {
-                                        ControlErrores(dt, z);
-                                    }
+                                    indexerror.Add(z);
+                                    error.Add("Fecha invalida: " + dt.Rows[z][s].ToString() + " el formato debe ser dd/MM/YYYY");
+                                    ControlErrores(dt, z);
                                 }
                             }
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("rfc"))
+                            {
+                                if (Validate_RFC(dt.Rows[z][s].ToString(), z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                            }
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("email"))
+                            {
+                                if (Validate_Email(dt.Rows[z][s].ToString(), z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                                else
+                                {
+                                    dt.Rows[z][s]= dt.Rows[z][s].ToString().ToLower();
+                                }
+                            }
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo"))
+                            {
+                                if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                            {
+                                if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
+                                {
+                                    dt.Rows[z][s] = FormatDecimal(dt.Rows[z][s].ToString());
+                                }
+                                else
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                            }
+                            //if (string.IsNullOrEmpty(data))
+                            //{
+                            //    indexerror.Add(z);
+                            //    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //    ControlErrores(dt, z);
+                            //}
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        dt = new DataTable();
-                        dt.Columns.Add("ERROR CLEANED");
-                        dt.Rows.Add("error limpiando datos: " + ex.Message);
-                        //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
                     }
                 }
             }
-            dt.AcceptChanges();
-            dt = DropDuplicates(dt);//elimina filas duplicadas
+            catch (Exception ex)
+            {
+                dt = new DataTable();
+                dt.Columns.Add("ERROR PROCESANDO DATOS");
+                dt.Rows.Add("error limpiando datos: " + ex.Message);
+            }            
             dt.AcceptChanges();
             return dt;
         }
