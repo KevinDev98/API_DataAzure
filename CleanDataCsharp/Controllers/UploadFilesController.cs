@@ -317,6 +317,7 @@ namespace CleanDataCsharp.Controllers
                                                     }
                                                     else
                                                     {
+                                                        //limpios y sucios
                                                         rutaOutput = Azure.GetUrlContainer();
                                                         rutaOutput = rutaOutput.Replace(Contenedor, rejected);
                                                         URLsucios = rutaOutput + "Rejected_" + FileName + ".csv";
@@ -324,6 +325,16 @@ namespace CleanDataCsharp.Controllers
                                                         sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
                                                         DataValidate.Rows.Add(HttpStatusCode.OK, FileName, limpios, URLlimpios, sucios, URLsucios);
                                                     }
+                                                }
+                                                else
+                                                {
+                                                    //solo limpios
+                                                    rutaOutput = Azure.GetUrlContainer();
+                                                    rutaOutput = rutaOutput.Replace(Contenedor, rejected);
+                                                    URLsucios = "No se encontraron registros sucios";
+                                                    limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
+                                                    sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
+                                                    DataValidate.Rows.Add(HttpStatusCode.OK, FileName, limpios, URLlimpios, sucios, URLsucios);
                                                 }
                                             }
                                         }
@@ -371,7 +382,7 @@ namespace CleanDataCsharp.Controllers
             }
             else
             {
-                jsonresponse.CodeResponse = 200;
+                jsonresponse.CodeResponse = 404;
                 jsonresponse.MessageResponse = "No se cargaron todos los archivos";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
             }
