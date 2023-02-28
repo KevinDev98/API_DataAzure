@@ -96,7 +96,7 @@ namespace CleanDataCsharp.Controllers
         //            NombresArchivos = parametros.NombresArchivosN;
         //            transformed = parametros.ContenedorTransformed;
         //            rejected = parametros.ContenedorRejected;
-        //            Azure = new AzureFunctionsClass(Contenedor);
+        //            Azure = new AzureFunctionsClass(Contenedor, parametros.key);
 
         //            DataValidate = new DataTable();
         //            DataValidate.Columns.Add("Archivo Trabajado");
@@ -217,7 +217,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("DataTransformed")]
-        public IActionResult DataTransformed(CuratedModel parametros)
+        public IActionResult DataTransformed(TransformedModel parametros)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace CleanDataCsharp.Controllers
                     NombresArchivos = parametros.NombresArchivosN;
                     transformed = parametros.ContenedorTransformed;
                     rejected = parametros.ContenedorRejected;
-                    Azure = new AzureFunctionsClass(Contenedor);
+                    Azure = new AzureFunctionsClass(Contenedor, parametros.key);
 
                     DataValidate = new DataTable();
                     DataValidate.Columns.Add("Status Code");
@@ -408,7 +408,7 @@ namespace CleanDataCsharp.Controllers
                     Contenedor = parametros.Contenedor;
                     raw = parametros.ContenedorRAW;
                     NombresArchivos = parametros.NombresArchivosN;
-                    Azure = new AzureFunctionsClass(Contenedor);
+                    Azure = new AzureFunctionsClass(Contenedor, parametros.key);
 
                     DataValidate = new DataTable();
                     DataValidate.Columns.Add("Status code");
@@ -531,7 +531,7 @@ namespace CleanDataCsharp.Controllers
                 {
                     Contenedor = parametros.Contenedor;
                     NombresArchivos = parametros.Listfilename;
-                    Azure = new AzureFunctionsClass(Contenedor);
+                    Azure = new AzureFunctionsClass(Contenedor, parametros.key);
                     if (NombresArchivos.Count == 1)
                     {
                         rutaOutput = Azure.GetUrlContainer();
