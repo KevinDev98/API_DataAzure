@@ -101,7 +101,7 @@ namespace CleanDataCsharp.Controllers
                                 sucios = dataerror.Rows.Count.ToString() + " Datos procesados correctamente";
                                 jsonresponse.CodeResponse = 400;
                                 jsonresponse.MessageResponse = "Se completaron todos los procesos";
-                                DataValidate.Rows.Add(statusCode.ToString(), name, sucios, url + "rejectedSQL_Table_" + name);
+                                DataValidate.Rows.Add(statusCode.ToString(), name, sucios, url + name);
                             }                            
                         }
                     }
