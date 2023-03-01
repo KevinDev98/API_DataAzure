@@ -758,11 +758,18 @@ namespace CleanDataCsharp.Class
 
                         if (dt.Rows[z][s] == null)//Valida si la celda es null
                         {
-                            dt.Rows[z][s] = "";
+                            dt.Rows[z][s] = "-";
                             //isnull = true;
                             //indexerror.Add(z);
                             //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
                             //ControlErrores(dt, z);
+                        }
+                        if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
+                        {
+                            dt.Rows[z][s] = "-";
+                            //    indexerror.Add(z);
+                            //    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //    ControlErrores(dt, z);
                         }
                         else
                         {
