@@ -15,12 +15,6 @@ namespace CleanDataCsharp.Class
         {
             try
             {
-                /*
-                 "srvr": "cwByAHYAcgBkAGIAcwBxAGwAdgBlAG4AdABhAHMALgBkAGEAdABhAGIAYQBzAGUALgB3AGkAbgBkAG8AdwBzAC4AbgBlAHQA",
-        "db": "VgBlAG4AdABhAHMARQBUAEwA",
-        "us": "cwBhAHMAcQBsAA==",
-        "pwd": "SABvAGwAYQAxADIAMwArAA=="
-                 */
                 ConStringBuilder.DataSource = Security.DesEncriptar("cwByAHYAcgBkAGIAcwBxAGwAdgBlAG4AdABhAHMALgBkAGEAdABhAGIAYQBzAGUALgB3AGkAbgBkAG8AdwBzAC4AbgBlAHQA");
                 ConStringBuilder.InitialCatalog = Security.DesEncriptar("dABlAHMAdABzAHEAbAB2AGUAbgB0AGEAcwA=");
                 ConStringBuilder.IntegratedSecurity = false;

@@ -46,7 +46,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                s = "error limpiando datos : " + ex.Message+ "_"+ ex.InnerException;
+                //s = "error limpiando datos : " + ex.Message+ "_"+ ex.InnerException;
                 //Console.WriteLine("Error eliminando espacios en blanco");
             }
             return s;
@@ -71,7 +71,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                s = "error limpiando datos : " + ex.Message+ "_"+ ex.InnerException;
+                //s = "error limpiando datos : " + ex.Message+ "_"+ ex.InnerException;
                 //Console.WriteLine("error eliminando caractares");
             }
             return s;
@@ -104,6 +104,8 @@ namespace CleanDataCsharp.Class
             try
             {
                 dte = dte.Replace(" 000000.0000000", "");
+                dte = dte.Replace(" 12:00:00 a. m.", "");
+                dte = dte.Substring(0, 10);
                 DateTime date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
                 dte = date.ToString("dd/MM/yyyy"); // Da el formato de fecha
             }
@@ -765,7 +767,13 @@ namespace CleanDataCsharp.Class
                         else
                         {
                             data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
-                            dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
+                            try
+                            {
+                                dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
+                            }
+                            catch (Exception)
+                            {
+                            }
                             if ((dt.Columns[s].DataType.Name == "Date") || (dt.Columns[s].ColumnName.ToLower().Contains("fecha") || dt.Columns[s].ColumnName.ToLower().Contains("date")))
                             {
                                 dt.Rows[z][s] = Change_Date_Format(dt.Rows[z][s].ToString(), z);
@@ -791,7 +799,7 @@ namespace CleanDataCsharp.Class
                                 }
                                 else
                                 {
-                                    dt.Rows[z][s]= dt.Rows[z][s].ToString().ToLower();
+                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().ToLower();
                                 }
                             }
                             else if ((dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo")) || (dt.Columns[s].ColumnName.ToLower().Contains("amount") || dt.Columns[s].ColumnName.ToLower().Contains("price") || dt.Columns[s].ColumnName.ToLower().Contains("cost")))
@@ -827,7 +835,7 @@ namespace CleanDataCsharp.Class
                 dt = new DataTable();
                 dt.Columns.Add("ERROR PROCESANDO DATOS");
                 dt.Rows.Add("error limpiando datos: " + ex.Message);
-            }            
+            }
             dt.AcceptChanges();
             return dt;
         }
@@ -921,7 +929,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                xmlstr = "error convirtiendo a XML: " + ex.Message+ "_"+ ex.InnerException;
+                xmlstr = "error convirtiendo a XML: " + ex.Message + "_" + ex.InnerException;
             }
 
             return (xmlstr);

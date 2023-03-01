@@ -147,14 +147,13 @@ namespace CleanDataCsharp.Class
         }
         public string UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table, string ContainerBlobName) //Carga el archivo a DLS 
         {
-            //?restype=container&comp=list
-            Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
-            CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
-            string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
-            CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
-            var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
+            //Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
+            //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
+            //CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
+            //CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
+            //string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
+            //CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
+            //var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
             try
             {
                 Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
@@ -174,8 +173,6 @@ namespace CleanDataCsharp.Class
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "Azure blob error: " + ex.Message+ "_"+ ex.InnerException;
-                //Console.ForegroundColor = ConsoleColor.Red;
-                //Console.WriteLine("Azure blob error: " + ex.Message);
             }
             return jsonresponse.MessageResponse;
         }
@@ -208,27 +205,23 @@ namespace CleanDataCsharp.Class
         }
         public void FromSQLtoBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
         {
-            Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
-            CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
-            string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
-            CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
-            var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
-
             try
             {
-                byte[] blobBytes= Functions.FromTableToCSV(table);
-                
+                Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
+                BlobServiceClient AzureBlobStorage = new BlobServiceClient(Str_Connect2);
+                container = AzureBlobStorage.GetBlobContainerClient(ContainerNameA);
+                container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe
+
+                byte[] blobBytes= Functions.FromTableToCSV(table);                
                 using (var readStream = new MemoryStream(blobBytes))
                 {
-                    container.DeleteBlobIfExists(PathBlob+FilenameAz); //Borra el archivo si ya existe
-                    container.UploadBlob(PathBlob+FilenameAz, readStream);//Carga el archivo
+                    container.UploadBlob(FilenameAz, readStream);//Carga el archivo
                 }
             }
             catch (Exception ex)
             {
-
+                jsonresponse.CodeResponse = 0;
+                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message + "_" + ex.InnerException;
             }
         }
         #endregion
