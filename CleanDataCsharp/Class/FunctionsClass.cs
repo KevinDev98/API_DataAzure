@@ -105,7 +105,7 @@ namespace CleanDataCsharp.Class
             {
                 //dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
                 DateTime date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
-                dte = date.ToString("dd/MM/yyyy hh:mm: dd"); // Da el formato de fecha
+                dte = date.ToString("dd/MM/yyyy hh:mm:dd"); // Da el formato de fecha
             }
             catch (Exception)
             {
