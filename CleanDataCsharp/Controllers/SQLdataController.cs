@@ -37,7 +37,7 @@ namespace CleanDataCsharp.Controllers
                 try
                 {
                     DT_DataSource = Functions.DropDuplicates(DT_DataSource);
-                    DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                    DT_DataSource = Functions.CleanDataTableSQL(DT_DataSource);
                     FAzure = new AzureFunctionsClass(parametros.contenedor, parametros.key);
                     if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                     {

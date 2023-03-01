@@ -105,11 +105,11 @@ namespace CleanDataCsharp.Class
             {
                 //dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
                 DateTime date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
-                dte = date.ToString("dd/MM/yyyy hh:mm:dd"); // Da el formato de fecha
+                dte = date.ToString("dd/MM/yyyy"); // Da el formato de fecha
             }
             catch (Exception)
             {
-                //dte = dte + "-Error fecha";//Si la conversión no se puede realizar devolvera error
+                dte = dte + "-Error fecha";//Si la conversión no se puede realizar devolvera error
                 //Console.WriteLine("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
             }
             return dte;
@@ -163,6 +163,7 @@ namespace CleanDataCsharp.Class
         }
         public Boolean Validate_Phone(string s, int lngt, int index)
         {
+            s = s.Replace(" ", "").Replace("-", "");
             Boolean TorF = true;
             try
             {
@@ -466,280 +467,418 @@ namespace CleanDataCsharp.Class
             dt = DropDuplicates(dt);//elimina filas duplicadas
             return dt;
         }
-        public DataTable CleanDataTableProductos(DataTable dt)
+        //public DataTable CleanDataTableProductos(DataTable dt)
+        //{
+        //    string data = "";
+        //    dataerror = new DataTable();
+        //    CopyHeaders(dt, dataerror);
+        //    for (int z = 0; z < dt.Rows.Count; z++)//Filas
+        //    {
+        //        for (int s = 0; s < dt.Columns.Count; s++)
+        //        {
+        //            isnull = false;
+        //            try
+        //            {
+        //                if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
+        //                {
+        //                    dt.Rows[z][s] = "";
+        //                    //isnull = true;
+        //                    //indexerror.Add(z);
+        //                    //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                    //ControlErrores(dt, z);
+        //                }
+        //                else
+        //                {
+        //                    data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
+        //                    if (string.IsNullOrEmpty(data))
+        //                    {
+        //                        isnull = true;
+        //                        indexerror.Add(z);
+        //                        try
+        //                        {
+        //                            error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                        }
+        //                        catch (Exception)
+        //                        {
+        //                            error.Add("Se encontro una fila vacia en la fila " + (z + 1));
+        //                        }
+        //                        ControlErrores(dt, z);
+        //                    }
+        //                }
+        //                if (!isnull)//si no es null entonces continua con el proceso
+        //                {
+        //                    if (s == 0)
+        //                    {
+        //                        if (IsNumeric(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("ID NO NUMERICO:" + data);
+        //                        }
+        //                    }
+        //                    else if (s == 4)
+        //                    {
+        //                        //if (data.Contains("-"))
+        //                        //{
+        //                        //    //Console.WriteLine("valor negativo");
+        //                        //}
+        //                        if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
+        //                        {
+        //                            dt.Rows[z][s] = FormatDecimal(data);
+        //                        }
+        //                        else
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("valor negativo");
+        //                        }
+        //                    }
+        //                    else if (s == 5)
+        //                    {
+        //                        try
+        //                        {
+        //                            dt.Rows[z][s] = Change_Date_Format(data, z);
+        //                            if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
+        //                            {
+        //                                indexerror.Add(z);
+        //                                error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
+        //                                ControlErrores(dt, z);
+        //                            }
+        //                            else
+        //                            {
+        //                                Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
+        //                            }
+        //                        }
+        //                        catch (Exception ex)
+        //                        {
+        //                            dt = new DataTable();
+        //                            dt.Columns.Add("ERROR");
+        //                            dt.Rows.Add("error limpiando datos clientes: " + ex.Message);
+        //                            //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                dt = new DataTable();
+        //                dt.Columns.Add("ERROR");
+        //                dt.Rows.Add("error limpiando datos productos: " + ex.Message);
+        //                //Console.WriteLine("error limpiando datos productos: " + ex.Message + "s:" + s + "z" + z);
+        //            }
+        //        }
+        //    }
+        //    dt = DropDuplicates(dt);//elimina filas duplicadas
+        //    return dt;
+        //}
+        //public DataTable CleanDataTableSucursales(DataTable dt)
+        //{
+        //    string data = "";
+        //    dataerror = new DataTable();
+        //    CopyHeaders(dt, dataerror);
+        //    for (int z = 0; z < dt.Rows.Count; z++)//Filas
+        //    {
+        //        for (int s = 0; s < dt.Columns.Count; s++)
+        //        {
+        //            isnull = false;
+        //            try
+        //            {
+        //                if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
+        //                {
+        //                    dt.Rows[z][s] = "";
+        //                    //isnull = true;
+        //                    //indexerror.Add(z);
+        //                    //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                    //ControlErrores(dt, z);
+        //                }
+        //                else
+        //                {
+        //                    data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
+        //                    if (string.IsNullOrEmpty(data))
+        //                    {
+        //                        isnull = true;
+        //                        indexerror.Add(z);
+        //                        error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                        ControlErrores(dt, z);
+        //                    }
+        //                }
+        //                if (!isnull)//si no es null entonces continua con el proceso
+        //                {
+        //                    if (s == 0)
+        //                    {
+        //                        if (IsNumeric(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("ID NO NUMERICO:" + data);
+        //                        }
+        //                    }
+        //                    else if (s == 5)
+        //                    {
+        //                        try
+        //                        {
+        //                            dt.Rows[z][s] = Change_Date_Format(data, z);
+        //                            if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
+        //                            {
+        //                                indexerror.Add(z);
+        //                                error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
+        //                                ControlErrores(dt, z);
+        //                            }
+        //                            else
+        //                            {
+        //                                Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
+        //                            }
+        //                        }
+        //                        catch (Exception ex)
+        //                        {
+        //                            dt = new DataTable();
+        //                            dt.Columns.Add("ERROR");
+        //                            dt.Rows.Add("error limpiando datos sucursales: " + ex.Message);
+        //                            //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                dt = new DataTable();
+        //                dt.Columns.Add("ERROR");
+        //                dt.Rows.Add("error limpiando datos sucursales: " + ex.Message);
+        //                //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
+        //            }
+        //        }
+        //    }
+        //    dt = DropDuplicates(dt);//elimina filas duplicadas
+        //    return dt;
+        //}
+        //public DataTable CleanDataTableVentas(DataTable dt)
+        //{
+        //    string data = "";
+        //    dataerror = new DataTable();
+        //    CopyHeaders(dt, dataerror);
+        //    for (int z = 0; z < dt.Rows.Count; z++)//Filas
+        //    {
+        //        for (int s = 0; s < dt.Columns.Count; s++)
+        //        {
+        //            isnull = false;
+        //            try
+        //            {
+        //                if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
+        //                {
+        //                    dt.Rows[z][s] = "";
+        //                    //isnull = true;
+        //                    //indexerror.Add(z);
+        //                    //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                    //ControlErrores(dt, z);
+        //                }
+        //                else
+        //                {
+        //                    data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
+        //                    if (string.IsNullOrEmpty(data))
+        //                    {
+        //                        isnull = true;
+        //                        indexerror.Add(z);
+        //                        error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                        ControlErrores(dt, z);
+        //                    }
+        //                }
+        //                if (!isnull)//si no es null entonces continua con el proceso
+        //                {
+        //                    if (s == 0 || s > 5)
+        //                    {
+        //                        if (IsNumeric(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("ID NO NUMERICO:" + data);
+        //                        }
+        //                    }
+        //                    else if (s > 1 & s < 6)
+        //                    {
+        //                        //if (data.Contains("-"))
+        //                        //{
+        //                        //    //Console.WriteLine("valor negativo");
+        //                        //}
+        //                        if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
+        //                        {
+        //                            dt.Rows[z][s] = FormatDecimal(data);
+        //                        }
+        //                        else
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("valor negativo");
+        //                        }
+        //                    }
+        //                    else if (s == 1)
+        //                    {
+        //                        try
+        //                        {
+        //                            dt.Rows[z][s] = Change_Date_Format(data, z);
+        //                            if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
+        //                            {
+        //                                indexerror.Add(z);
+        //                                error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
+        //                                ControlErrores(dt, z);
+        //                            }
+        //                            else
+        //                            {
+        //                                Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
+        //                            }
+        //                        }
+        //                        catch (Exception ex)
+        //                        {
+        //                            dt = new DataTable();
+        //                            dt.Columns.Add("ERROR");
+        //                            dt.Rows.Add("error limpiando datos ventas: " + ex.Message);
+        //                            //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                dt = new DataTable();
+        //                dt.Columns.Add("ERROR");
+        //                dt.Rows.Add("error limpiando datos ventas: " + ex.Message);
+        //                //Console.WriteLine("error limpiando datos Ventas: " + ex.Message + "s:" + s + "z" + z);
+        //            }
+        //        }
+        //    }
+        //    dt = DropDuplicates(dt);//elimina filas duplicadas
+        //    return dt;
+        //}
+        public DataTable CleanDataTableSQL(DataTable dt)
         {
             string data = "";
             dataerror = new DataTable();
             CopyHeaders(dt, dataerror);
-            for (int z = 0; z < dt.Rows.Count; z++)//Filas
+            try
             {
-                for (int s = 0; s < dt.Columns.Count; s++)
+                for (int z = 0; z < dt.Rows.Count; z++)
                 {
-                    isnull = false;
-                    try
+                    for (int s = 0; s < dt.Columns.Count; s++)
                     {
-                        if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
+
+                        if (dt.Rows[z][s] == null)//Valida si la celda es null
                         {
-                            dt.Rows[z][s] = "";
+                            if (dt.Columns[s].DataType.Name == "String")
+                            {
+                                dt.Rows[z][s] = "-";
+                            }
+                            else if (dt.Columns[s].DataType.Name.ToLower().Contains("int"))
+                            {
+                                dt.Rows[z][s] = 0;
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Date")
+                            {
+                                dt.Rows[z][s] = "01/01/9999";
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                            {
+                                dt.Rows[z][s] = 0;
+                            }
                             //isnull = true;
                             //indexerror.Add(z);
                             //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
                             //ControlErrores(dt, z);
                         }
+                        else if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
+                        {
+                            if (dt.Columns[s].DataType.Name == "String")
+                            {
+                                dt.Rows[z][s] = "-";
+                            }
+                            else if (dt.Columns[s].DataType.Name.ToLower().Contains("int"))
+                            {
+                                dt.Rows[z][s] = 0;
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Date")
+                            {
+                                dt.Rows[z][s] = "01/01/9999";
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                            {
+                                dt.Rows[z][s] = 0.0;
+                            }
+                            //    indexerror.Add(z);
+                            //    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //    ControlErrores(dt, z);
+                        }
                         else
                         {
                             data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
-                            if (string.IsNullOrEmpty(data))
+                            try
                             {
-                                isnull = true;
-                                indexerror.Add(z);
-                                try
-                                {
-                                    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                                }
-                                catch (Exception)
-                                {
-                                    error.Add("Se encontro una fila vacia en la fila " + (z + 1));
-                                }
-                                ControlErrores(dt, z);
+                                dt.Rows[z][s] = Remove_SpacheWithe(Remove_Special_Characteres(data));
                             }
-                        }
-                        if (!isnull)//si no es null entonces continua con el proceso
-                        {
-                            if (s == 0)
+                            catch (Exception)
                             {
-                                if (IsNumeric(data, z) == false)
+                            }
+                            if (dt.Columns[s].ColumnName.ToLower().Contains("rfc"))
+                            {
+                                if (Validate_RFC(dt.Rows[z][s].ToString(), z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    //Console.WriteLine("ID NO NUMERICO:" + data);
                                 }
                             }
-                            else if (s == 4)
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("email"))
                             {
-                                //if (data.Contains("-"))
-                                //{
-                                //    //Console.WriteLine("valor negativo");
-                                //}
+                                if (Validate_Email(dt.Rows[z][s].ToString(), z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                                else
+                                {
+                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().ToLower();
+                                }
+                            }
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("telefono") || dt.Columns[s].ColumnName.ToLower().Contains("cel") || dt.Columns[s].ColumnName.ToLower().Contains("phone"))
+                            {
+                                if (Validate_Phone(dt.Rows[z][s].ToString(), 10, z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                                else
+                                {
+                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().Replace(" ", "").Replace("-", "");
+                                }
+                            }
+                            else if ((dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo")) || (dt.Columns[s].ColumnName.ToLower().Contains("amount") || dt.Columns[s].ColumnName.ToLower().Contains("price") || dt.Columns[s].ColumnName.ToLower().Contains("cost")))
+                            {
+                                if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                            {
                                 if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
                                 {
-                                    dt.Rows[z][s] = FormatDecimal(data);
+                                    dt.Rows[z][s] = FormatDecimal(dt.Rows[z][s].ToString());
                                 }
                                 else
                                 {
                                     ControlErrores(dt, z);
-                                    //Console.WriteLine("valor negativo");
                                 }
                             }
-                            else if (s == 5)
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("telefono") || dt.Columns[s].ColumnName.ToLower().Contains("cel") || dt.Columns[s].ColumnName.ToLower().Contains("phone"))
                             {
-                                try
-                                {
-                                    dt.Rows[z][s] = Change_Date_Format(data, z);
-                                    if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
-                                    {
-                                        indexerror.Add(z);
-                                        error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
-                                        ControlErrores(dt, z);
-                                    }
-                                    else
-                                    {
-                                        Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    dt = new DataTable();
-                                    dt.Columns.Add("ERROR");
-                                    dt.Rows.Add("error limpiando datos clientes: " + ex.Message);
-                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        dt = new DataTable();
-                        dt.Columns.Add("ERROR");
-                        dt.Rows.Add("error limpiando datos productos: " + ex.Message);
-                        //Console.WriteLine("error limpiando datos productos: " + ex.Message + "s:" + s + "z" + z);
-                    }
-                }
-            }
-            dt = DropDuplicates(dt);//elimina filas duplicadas
-            return dt;
-        }
-        public DataTable CleanDataTableSucursales(DataTable dt)
-        {
-            string data = "";
-            dataerror = new DataTable();
-            CopyHeaders(dt, dataerror);
-            for (int z = 0; z < dt.Rows.Count; z++)//Filas
-            {
-                for (int s = 0; s < dt.Columns.Count; s++)
-                {
-                    isnull = false;
-                    try
-                    {
-                        if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
-                        {
-                            dt.Rows[z][s] = "";
-                            //isnull = true;
-                            //indexerror.Add(z);
-                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //ControlErrores(dt, z);
-                        }
-                        else
-                        {
-                            data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
-                            if (string.IsNullOrEmpty(data))
-                            {
-                                isnull = true;
-                                indexerror.Add(z);
-                                error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                                ControlErrores(dt, z);
-                            }
-                        }
-                        if (!isnull)//si no es null entonces continua con el proceso
-                        {
-                            if (s == 0)
-                            {
-                                if (IsNumeric(data, z) == false)
+                                if (Validate_Phone(dt.Rows[z][s].ToString(),10, z) == false)
                                 {
                                     ControlErrores(dt, z);
-                                    //Console.WriteLine("ID NO NUMERICO:" + data);
-                                }
-                            }
-                            else if (s == 5)
-                            {
-                                try
-                                {
-                                    dt.Rows[z][s] = Change_Date_Format(data, z);
-                                    if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
-                                    {
-                                        indexerror.Add(z);
-                                        error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
-                                        ControlErrores(dt, z);
-                                    }
-                                    else
-                                    {
-                                        Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    dt = new DataTable();
-                                    dt.Columns.Add("ERROR");
-                                    dt.Rows.Add("error limpiando datos sucursales: " + ex.Message);
-                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        dt = new DataTable();
-                        dt.Columns.Add("ERROR");
-                        dt.Rows.Add("error limpiando datos sucursales: " + ex.Message);
-                        //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
-                    }
-                }
-            }
-            dt = DropDuplicates(dt);//elimina filas duplicadas
-            return dt;
-        }
-        public DataTable CleanDataTableVentas(DataTable dt)
-        {
-            string data = "";
-            dataerror = new DataTable();
-            CopyHeaders(dt, dataerror);
-            for (int z = 0; z < dt.Rows.Count; z++)//Filas
-            {
-                for (int s = 0; s < dt.Columns.Count; s++)
-                {
-                    isnull = false;
-                    try
-                    {
-                        if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
-                        {
-                            dt.Rows[z][s] = "";
-                            //isnull = true;
-                            //indexerror.Add(z);
-                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //ControlErrores(dt, z);
-                        }
-                        else
-                        {
-                            data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
-                            if (string.IsNullOrEmpty(data))
-                            {
-                                isnull = true;
-                                indexerror.Add(z);
-                                error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                                ControlErrores(dt, z);
-                            }
-                        }
-                        if (!isnull)//si no es null entonces continua con el proceso
-                        {
-                            if (s == 0 || s > 5)
-                            {
-                                if (IsNumeric(data, z) == false)
-                                {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("ID NO NUMERICO:" + data);
-                                }
-                            }
-                            else if (s > 1 & s < 6)
-                            {
-                                //if (data.Contains("-"))
-                                //{
-                                //    //Console.WriteLine("valor negativo");
-                                //}
-                                if (Validate_Amount(data, z))//Si el monto no es menor a 0, le da el formato correspondiente
-                                {
-                                    dt.Rows[z][s] = FormatDecimal(data);
                                 }
                                 else
                                 {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("valor negativo");
-                                }
-                            }
-                            else if (s == 1)
-                            {
-                                try
-                                {
-                                    dt.Rows[z][s] = Change_Date_Format(data, z);
-                                    if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
-                                    {
-                                        indexerror.Add(z);
-                                        error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
-                                        ControlErrores(dt, z);
-                                    }
-                                    else
-                                    {
-                                        Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    dt = new DataTable();
-                                    dt.Columns.Add("ERROR");
-                                    dt.Rows.Add("error limpiando datos ventas: " + ex.Message);
-                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().Replace(" ","").Replace("-", "");
                                 }
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        dt = new DataTable();
-                        dt.Columns.Add("ERROR");
-                        dt.Rows.Add("error limpiando datos ventas: " + ex.Message);
-                        //Console.WriteLine("error limpiando datos Ventas: " + ex.Message + "s:" + s + "z" + z);
-                    }
                 }
             }
-            dt = DropDuplicates(dt);//elimina filas duplicadas
+            catch (Exception ex)
+            {
+                dt = new DataTable();
+                dt.Columns.Add("ERROR PROCESANDO DATOS");
+                dt.Rows.Add("error limpiando datos: " + ex.Message);
+            }
+            dt.AcceptChanges();
             return dt;
         }
         public DataTable CleanDataTable(DataTable dt)
@@ -756,7 +895,7 @@ namespace CleanDataCsharp.Class
 
                         if (dt.Rows[z][s] == null)//Valida si la celda es null
                         {
-                            if (dt.Columns[s].DataType.Name=="String")
+                            if (dt.Columns[s].DataType.Name == "String")
                             {
                                 dt.Rows[z][s] = "-";
                             }
@@ -764,7 +903,7 @@ namespace CleanDataCsharp.Class
                             {
                                 dt.Rows[z][s] = 0;
                             }
-                            else if(dt.Columns[s].DataType.Name == "Date")
+                            else if (dt.Columns[s].DataType.Name == "Date")
                             {
                                 dt.Rows[z][s] = "01/01/9999";
                             }
@@ -837,6 +976,17 @@ namespace CleanDataCsharp.Class
                                     dt.Rows[z][s] = dt.Rows[z][s].ToString().ToLower();
                                 }
                             }
+                            else if (dt.Columns[s].ColumnName.ToLower().Contains("telefono") || dt.Columns[s].ColumnName.ToLower().Contains("cel") || dt.Columns[s].ColumnName.ToLower().Contains("phone"))
+                            {
+                                if (Validate_Phone(dt.Rows[z][s].ToString(), 10, z) == false)
+                                {
+                                    ControlErrores(dt, z);
+                                }
+                                else
+                                {
+                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().Replace(" ", "").Replace("-", "");
+                                }
+                            }
                             else if ((dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo")) || (dt.Columns[s].ColumnName.ToLower().Contains("amount") || dt.Columns[s].ColumnName.ToLower().Contains("price") || dt.Columns[s].ColumnName.ToLower().Contains("cost")))
                             {
                                 if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
@@ -855,12 +1005,6 @@ namespace CleanDataCsharp.Class
                                     ControlErrores(dt, z);
                                 }
                             }
-                            //if (string.IsNullOrEmpty(data))
-                            //{
-                            //    indexerror.Add(z);
-                            //    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //    ControlErrores(dt, z);
-                            //}
                         }
                     }
                 }
