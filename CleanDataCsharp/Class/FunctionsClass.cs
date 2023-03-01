@@ -110,7 +110,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception)
             {
-                dte = dte + "-Error fecha";//Si la conversión no se puede realizar devolvera error
+                //dte = dte + "-Error fecha";//Si la conversión no se puede realizar devolvera error
                 //Console.WriteLine("Fecha invalida: " + dte + " el formato debe ser dd/MM/YYYY");
             }
             return dte;

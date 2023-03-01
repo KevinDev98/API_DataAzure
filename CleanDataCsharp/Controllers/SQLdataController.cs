@@ -37,12 +37,12 @@ namespace CleanDataCsharp.Controllers
                 try
                 {
                     DT_DataSource = Functions.DropDuplicates(DT_DataSource);
-                    DT_DataSource = Functions.CleanDataTable(DT_DataSource);                    
+                    DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                    FAzure = new AzureFunctionsClass(parametros.contenedor, parametros.key);
                     if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                     {
                         DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
-                        //dataerror = Functions.GetDTErrores();
-                        FAzure = new AzureFunctionsClass(parametros.contenedor, parametros.key);                        
+                        //dataerror = Functions.GetDTErrores();                                               
                         string url = FAzure.GetUrlContainer();
                         FAzure.FromSQLtoBlobDLSG2(url, parametros.StrFileName, DT_DataSource);
                         jsonresponse.CodeResponse = 200;
@@ -50,8 +50,12 @@ namespace CleanDataCsharp.Controllers
                     }
                     else
                     {
-                        jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = "error procesando datos SQL: " + DT_DataSource.Rows[0][0].ToString;
+                        string url = FAzure.GetUrlContainer();
+                        FAzure.FromSQLtoBlobDLSG2(url, parametros.StrFileName, DT_DataSource);
+                        jsonresponse.CodeResponse = 200;
+                        jsonresponse.MessageResponse = "archivo procesado: " + url + parametros.StrFileName;
+                        //jsonresponse.CodeResponse = 400;
+                        //jsonresponse.MessageResponse = "error procesando datos SQL: " + DT_DataSource.Rows[0][0].ToString;
                     }
 
                 }
