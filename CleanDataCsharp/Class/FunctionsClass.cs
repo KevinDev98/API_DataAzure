@@ -46,7 +46,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                s = "error limpiando datos : " + ex.Message;
+                s = "error limpiando datos : " + ex.Message+ "_"+ ex.InnerException;
                 //Console.WriteLine("Error eliminando espacios en blanco");
             }
             return s;
@@ -71,7 +71,7 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                s = "error limpiando datos : " + ex.Message;
+                s = "error limpiando datos : " + ex.Message+ "_"+ ex.InnerException;
                 //Console.WriteLine("error eliminando caractares");
             }
             return s;
@@ -480,10 +480,11 @@ namespace CleanDataCsharp.Class
                     {
                         if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
                         {
-                            isnull = true;
-                            indexerror.Add(z);
-                            error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            ControlErrores(dt, z);
+                            dt.Rows[z][s] = "";
+                            //isnull = true;
+                            //indexerror.Add(z);
+                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //ControlErrores(dt, z);
                         }
                         else
                         {
@@ -581,10 +582,11 @@ namespace CleanDataCsharp.Class
                     {
                         if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
                         {
-                            isnull = true;
-                            indexerror.Add(z);
-                            error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            ControlErrores(dt, z);
+                            dt.Rows[z][s] = "";
+                            //isnull = true;
+                            //indexerror.Add(z);
+                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //ControlErrores(dt, z);
                         }
                         else
                         {
@@ -659,10 +661,11 @@ namespace CleanDataCsharp.Class
                     {
                         if (dt.Rows[z][s] == null)//Valida si la celda es null o vacio
                         {
-                            isnull = true;
-                            indexerror.Add(z);
-                            error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            ControlErrores(dt, z);
+                            dt.Rows[z][s] = "";
+                            //isnull = true;
+                            //indexerror.Add(z);
+                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //ControlErrores(dt, z);
                         }
                         else
                         {
@@ -753,10 +756,11 @@ namespace CleanDataCsharp.Class
 
                         if (dt.Rows[z][s] == null)//Valida si la celda es null
                         {
-                            isnull = true;
-                            indexerror.Add(z);
-                            error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            ControlErrores(dt, z);
+                            dt.Rows[z][s] = "";
+                            //isnull = true;
+                            //indexerror.Add(z);
+                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+                            //ControlErrores(dt, z);
                         }
                         else
                         {
@@ -790,7 +794,7 @@ namespace CleanDataCsharp.Class
                                     dt.Rows[z][s]= dt.Rows[z][s].ToString().ToLower();
                                 }
                             }
-                            else if (dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo"))
+                            else if ((dt.Columns[s].ColumnName.ToLower().Contains("monto") || dt.Columns[s].ColumnName.ToLower().Contains("precio") || dt.Columns[s].ColumnName.ToLower().Contains("costo")) || (dt.Columns[s].ColumnName.ToLower().Contains("amount") || dt.Columns[s].ColumnName.ToLower().Contains("price") || dt.Columns[s].ColumnName.ToLower().Contains("cost")))
                             {
                                 if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
                                 {
@@ -917,12 +921,12 @@ namespace CleanDataCsharp.Class
             }
             catch (Exception ex)
             {
-                xmlstr = "error convirtiendo a XML: " + ex.Message;
+                xmlstr = "error convirtiendo a XML: " + ex.Message+ "_"+ ex.InnerException;
             }
 
             return (xmlstr);
         }
-        public byte[] FromCSVtoFile(DataTable table)
+        public byte[] FromTableToCSV(DataTable table)
         {
             byte[] blobBytes;
             using (var writeStream = new MemoryStream()) //Transforma el Stream a archivos

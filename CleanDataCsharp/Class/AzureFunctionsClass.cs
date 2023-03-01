@@ -162,7 +162,7 @@ namespace CleanDataCsharp.Class
                 container = AzureBlobStorage.GetBlobContainerClient(ContainerBlobName);
                 container.DeleteBlobIfExists(FilenameAz); //Borra el archivo si ya existe
                 byte[] blobBytes = null;
-                blobBytes = Functions.FromCSVtoFile(table);
+                blobBytes = Functions.FromTableToCSV(table);
                 using (var readStream = new MemoryStream(blobBytes))
                 {
                     container.UploadBlob(FilenameAz, readStream);//Carga el archivo                        
@@ -173,7 +173,7 @@ namespace CleanDataCsharp.Class
             catch (Exception ex)
             {
                 jsonresponse.CodeResponse = 0;
-                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message;
+                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message+ "_"+ ex.InnerException;
                 //Console.ForegroundColor = ConsoleColor.Red;
                 //Console.WriteLine("Azure blob error: " + ex.Message);
             }
@@ -200,11 +200,36 @@ namespace CleanDataCsharp.Class
             catch (Exception ex)
             {
                 jsonresponse.CodeResponse = 0;
-                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message;
+                jsonresponse.MessageResponse = "Azure blob error: " + ex.Message+ "_"+ ex.InnerException;
                 //Console.ForegroundColor = ConsoleColor.Red;
                 //Console.WriteLine("Azure blob error: " + ex.Message);
             }
             return jsonresponse.MessageResponse;
+        }
+        public void FromSQLtoBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
+        {
+            Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
+            CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
+            string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
+            CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
+            var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
+
+            try
+            {
+                byte[] blobBytes= Functions.FromTableToCSV(table);
+                
+                using (var readStream = new MemoryStream(blobBytes))
+                {
+                    container.DeleteBlobIfExists(PathBlob+FilenameAz); //Borra el archivo si ya existe
+                    container.UploadBlob(PathBlob+FilenameAz, readStream);//Carga el archivo
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
         #endregion
     }

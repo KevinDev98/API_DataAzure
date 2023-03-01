@@ -20,7 +20,7 @@ namespace CleanDataCsharp.Controllers
 {
     [ApiController]
     [Route("Azure")]
-    public class UploadFilesController : Controller
+    public class AzureBlobFilesController : Controller
     {
         FunctionsClass Functions = new FunctionsClass();
         AzureFunctionsClass Azure; // = new AzureFunctionsClass();
@@ -34,10 +34,7 @@ namespace CleanDataCsharp.Controllers
         int errorproceso = 0;
         DataTable dataerror = new DataTable();
         DataTable DT_DataSource = new DataTable();
-        //string Str_Connect = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=0Od+makghmoYKNHCBgqUQtlm9t7/0wJQlWZbjkTz8qCJU/QSFITn/TqWTQa/zEkRC33cu0qSWnnv+AStbA4m+Q==;EndpointSuffix=core.windows.net";
-        //string Str_Connect2 = "DefaultEndpointsProtocol=https;AccountName=storageaccountetl98;AccountKey=GecQ9fvQOC8fU95LzDE2NRqv7QmXiy+fI4iHMcHE3YVn2KDgwSjxrrxJUjzjMmBNxmoOF38mK+2V+AStB+464w==;EndpointSuffix=core.windows.net";
         string Contenedor, raw, transformed, curated, rejected;
-        string ExtencionArchivos;
         List<string> NombresArchivos = new List<string>();
         HttpResponseMessage response = new HttpResponseMessage();
 
@@ -72,7 +69,7 @@ namespace CleanDataCsharp.Controllers
         //    {
         //        response.StatusCode = HttpStatusCode.BadRequest;
         //        jsonresponse.CodeResponse = 0;
-        //        jsonresponse.MessageResponse = "Ocurrio un error en el proceso: " + ex.Message;
+        //        jsonresponse.MessageResponse = "Ocurrio un error en el proceso: " + ex.Message+ "_"+ ex.InnerException;
         //    }
 
         //    return Json(jsonresponse);
@@ -197,7 +194,7 @@ namespace CleanDataCsharp.Controllers
         //                {
         //                    response.StatusCode = HttpStatusCode.BadRequest;
         //                    jsonresponse.CodeResponse = 0;
-        //                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
+        //                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message+ "_"+ ex.InnerException;
         //                }
         //            }
         //            response.StatusCode = HttpStatusCode.OK;
@@ -210,7 +207,7 @@ namespace CleanDataCsharp.Controllers
         //    {
         //        response.StatusCode = HttpStatusCode.BadRequest;
         //        jsonresponse.CodeResponse = 0;
-        //        jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message;
+        //        jsonresponse.MessageResponse = "Error en el proceso CleanData: " + ex.Message+ "_"+ ex.InnerException;
         //    }
         //    return Json(jsonresponse);
         //}
@@ -346,7 +343,7 @@ namespace CleanDataCsharp.Controllers
                                     //response.StatusCode = HttpStatusCode.BadRequest;
                                     //jsonresponse.Response = response;
                                     jsonresponse.CodeResponse = 400;
-                                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
+                                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message+ "_"+ ex.InnerException;
                                     DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
                                 }
                             }
@@ -357,7 +354,7 @@ namespace CleanDataCsharp.Controllers
                             //response.StatusCode = HttpStatusCode.BadRequest;
                             //jsonresponse.Response = response;
                             jsonresponse.CodeResponse = 400;
-                            jsonresponse.MessageResponse = "Error en el proceso: " + ex.Message;
+                            jsonresponse.MessageResponse = "Error en el proceso: " + ex.Message+ "_"+ ex.InnerException;
                             DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
                         }
                     }
@@ -369,7 +366,7 @@ namespace CleanDataCsharp.Controllers
                 //response.StatusCode = HttpStatusCode.BadRequest;
                 //jsonresponse.Response = response;
                 jsonresponse.CodeResponse = 400;
-                jsonresponse.MessageResponse = "Error en el proceso Transformed: " + ex.Message;
+                jsonresponse.MessageResponse = "Error en el proceso Transformed: " + ex.Message+ "_"+ ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
             }
             if (errorproceso == 0)
@@ -479,7 +476,7 @@ namespace CleanDataCsharp.Controllers
                             catch (Exception ex)
                             {
                                 errorproceso = 1;
-                                jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message;
+                                jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message+ "_"+ ex.InnerException;
                                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
                             }
                         }
@@ -489,7 +486,7 @@ namespace CleanDataCsharp.Controllers
             catch (Exception ex)
             {
                 errorproceso = 1;
-                jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message;
+                jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message+ "_"+ ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
             }
             if (errorproceso == 0)
@@ -561,7 +558,7 @@ namespace CleanDataCsharp.Controllers
             catch (Exception ex)
             {
                 errorproceso = 1;
-                jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message;
+                jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message+ "_"+ ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
             }
             if (errorproceso == 0)
