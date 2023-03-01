@@ -46,7 +46,7 @@ namespace CleanDataCsharp.Controllers
                         string url = FAzure.GetUrlContainer();
                         FAzure.FromSQLtoBlobDLSG2(url, parametros.StrFileName, DT_DataSource);
                         jsonresponse.CodeResponse = 200;
-                        jsonresponse.MessageResponse = "archivoprocesado correctamente: " + url + parametros.StrFileName;
+                        jsonresponse.MessageResponse = "archivo procesado correctamente: " + url + parametros.StrFileName;
                     }
                     else
                     {

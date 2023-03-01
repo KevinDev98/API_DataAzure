@@ -103,8 +103,7 @@ namespace CleanDataCsharp.Class
         {
             try
             {
-                dte = dte.Replace(" 000000.0000000", "");
-                dte = dte.Replace(" 12:00:00 a. m.", "");
+                dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
                 dte = dte.Substring(0, 10);
                 DateTime date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
                 dte = date.ToString("dd/MM/yyyy"); // Da el formato de fecha
@@ -758,15 +757,45 @@ namespace CleanDataCsharp.Class
 
                         if (dt.Rows[z][s] == null)//Valida si la celda es null
                         {
-                            dt.Rows[z][s] = "-";
+                            if (dt.Columns[s].DataType.Name=="String")
+                            {
+                                dt.Rows[z][s] = "-";
+                            }
+                            else if (dt.Columns[s].DataType.Name.ToLower().Contains("int"))
+                            {
+                                dt.Rows[z][s] = 0;
+                            }
+                            else if(dt.Columns[s].DataType.Name == "Date")
+                            {
+                                dt.Rows[z][s] = "01/01/9999";
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                            {
+                                dt.Rows[z][s] = 0;
+                            }
                             //isnull = true;
                             //indexerror.Add(z);
                             //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
                             //ControlErrores(dt, z);
                         }
-                        if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
+                        else if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
                         {
-                            dt.Rows[z][s] = "-";
+                            if (dt.Columns[s].DataType.Name == "String")
+                            {
+                                dt.Rows[z][s] = "-";
+                            }
+                            else if (dt.Columns[s].DataType.Name.ToLower().Contains("int"))
+                            {
+                                dt.Rows[z][s] = 0;
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Date")
+                            {
+                                dt.Rows[z][s] = "01/01/9999";
+                            }
+                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
+                            {
+                                dt.Rows[z][s] = 0.0;
+                            }
                             //    indexerror.Add(z);
                             //    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
                             //    ControlErrores(dt, z);
@@ -905,7 +934,7 @@ namespace CleanDataCsharp.Class
                             data = rows[i];
                             if (rows[i].Contains(":") & rows[i].Contains("/")) //Elimina los espacios en blanco de las columnas que no son hora
                             {
-                                data = data.Replace(" 00:00", "").Replace(" 00:00:00.0000000", ""); //Elimina caracteres inecesarios
+                                data = data.Replace(" 00:00", "").Replace(" 00:00:00.0000000", "").Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", ""); //Elimina caracteres inecesarios
                                 rows[i] = data;
                             }
                             rows[i] = Remove_SpacheWithe(Remove_Special_Characteres(data));
@@ -965,14 +994,14 @@ namespace CleanDataCsharp.Class
                             if (!Convert.IsDBNull(dr[i]))
                             {
                                 string value = dr[i].ToString();
-                                if (value.Contains(','))
+                                if (value.Contains(',') || value.Contains(' '))
                                 {
                                     value = String.Format("\"{0}\"", value);
                                     writer.Write(value);
                                 }
                                 else
                                 {
-                                    writer.Write(dr[i].ToString());
+                                    writer.Write(value);
                                 }
                             }
                             if (i < table.Columns.Count - 1)
