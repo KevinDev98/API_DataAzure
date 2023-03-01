@@ -2,6 +2,7 @@
 using CleanDataCsharp.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Net;
 
 namespace CleanDataCsharp.Controllers
 {
@@ -15,8 +16,11 @@ namespace CleanDataCsharp.Controllers
         ConnectSQLClass sqls = new ConnectSQLClass();
         DataTable dataerror = new DataTable();
         DataTable DT_DataSource = new DataTable();
+        DataTable DataValidate = new DataTable();
         Boolean TorF = false;
-        JsonResult jsonR;
+        int errorproceso;
+        DataTable Process = new DataTable();
+        String name;
 
         [HttpPost]
         [Route("GetDataSQL")]
@@ -38,22 +42,75 @@ namespace CleanDataCsharp.Controllers
                 {
                     DT_DataSource = Functions.DropDuplicates(DT_DataSource);
                     DT_DataSource = Functions.CleanDataTableSQL(DT_DataSource);
-                    FAzure = new AzureFunctionsClass(parametros.contenedor, parametros.key);
+                    DT_DataSource = Functions.DeleteDirtyRowSQL(DT_DataSource);
+                    dataerror = Functions.GetDTErrores();
+                    string url, Upload, limpios, sucios;
+                    HttpStatusCode statusCode;
+                    DataValidate.Columns.Add("Status code");
+                    DataValidate.Columns.Add("Archivo");
+                    DataValidate.Columns.Add("resultado");
+                    DataValidate.Columns.Add("URL");
                     if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                     {
-                        DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
-                        //dataerror = Functions.GetDTErrores();                                               
-                        string url = FAzure.GetUrlContainer();
-                        FAzure.FromSQLtoBlobDLSG2(url, parametros.StrFileName, DT_DataSource);
-                        jsonresponse.CodeResponse = 200;
-                        jsonresponse.MessageResponse = "archivo procesado correctamente: " + url + parametros.StrFileName;
+                        if (DT_DataSource.Rows.Count > 0)
+                        {
+                            FAzure = new AzureFunctionsClass(parametros.contenedor, parametros.key);
+                            Process = DT_DataSource;
+                            name = parametros.StrFileName;
+                            url = FAzure.GetUrlContainer();
+                            Upload = FAzure.FromSQLtoBlobDLSG2(name, Process);
+                            if (Upload.ToLower().Contains("error"))
+                            {
+                                errorproceso = 1;
+                                statusCode = HttpStatusCode.BadRequest;
+                                limpios = "error cargando el archivo" + Upload;
+                                jsonresponse.CodeResponse = 400;
+                                jsonresponse.MessageResponse = "No se completaron todos los procesos";
+                            }
+                            else
+                            {
+                                errorproceso = 0;
+                                statusCode = HttpStatusCode.OK;
+                                limpios = DT_DataSource.Rows.Count.ToString() + " Datos procesados correctamente";
+                                jsonresponse.CodeResponse = 200;
+                                jsonresponse.MessageResponse = "Se completaron todos los procesos";
+                            }
+                            DataValidate.Rows.Add(statusCode.ToString(), name, limpios, url + name);
+                        }
+                        if (dataerror.Rows.Count > 0)
+                        {
+                            FAzure = new AzureFunctionsClass(parametros.contenedorRejec, parametros.key);
+                            Process = dataerror;
+                            name = "rejectedSQL_Table_" + parametros.StrFileName;
+                            url = FAzure.GetUrlContainer();
+                            Upload = FAzure.FromSQLtoBlobDLSG2(name, Process);
+                            if (Upload.ToLower().Contains("error"))
+                            {
+                                errorproceso = 1;
+                                statusCode = HttpStatusCode.BadRequest;
+                                sucios = "error cargando el archivo" + Upload;
+                                jsonresponse.CodeResponse = 400;
+                                jsonresponse.MessageResponse = "No se completaron todos los procesos";
+                            }
+                            else
+                            {
+                                errorproceso = 0;
+                                statusCode = HttpStatusCode.OK;
+                                sucios = dataerror.Rows.Count.ToString() + " Datos procesados correctamente";
+                                jsonresponse.CodeResponse = 400;
+                                jsonresponse.MessageResponse = "Se completaron todos los procesos";
+                            }
+                            DataValidate.Rows.Add(statusCode.ToString(), name, sucios, url + "rejectedSQL_Table_" + name);
+                        }
                     }
                     else
                     {
-                        string url = FAzure.GetUrlContainer();
-                        FAzure.FromSQLtoBlobDLSG2(url, parametros.StrFileName, DT_DataSource);
-                        jsonresponse.CodeResponse = 200;
-                        jsonresponse.MessageResponse = "archivo procesado: " + url + parametros.StrFileName;
+                        FAzure = new AzureFunctionsClass(parametros.contenedorRejec, parametros.key);
+                        url = FAzure.GetUrlContainer();
+                        FAzure.FromSQLtoBlobDLSG2(parametros.StrFileName, DT_DataSource);
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = "ERROR EN EL PROCESO: " + url + "rejectedSQL_Table_" + parametros.StrFileName;
+                        DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), name, DT_DataSource.Rows[0][0].ToString, url + "rejectedSQL_Table_" + name);
                         //jsonresponse.CodeResponse = 400;
                         //jsonresponse.MessageResponse = "error procesando datos SQL: " + DT_DataSource.Rows[0][0].ToString;
                     }
@@ -64,7 +121,7 @@ namespace CleanDataCsharp.Controllers
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
                 }
-
+                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
             }
             return Json(jsonresponse);
         }

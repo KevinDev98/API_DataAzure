@@ -203,8 +203,9 @@ namespace CleanDataCsharp.Class
             }
             return jsonresponse.MessageResponse;
         }
-        public void FromSQLtoBlobDLSG2(string PathBlob, string FilenameAz, DataTable table) //Carga el archivo a DLS 
+        public string FromSQLtoBlobDLSG2(string FilenameAz, DataTable table) //Carga el archivo a DLS 
         {
+            string result;
             try
             {
                 Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
@@ -217,12 +218,15 @@ namespace CleanDataCsharp.Class
                 {
                     container.UploadBlob(FilenameAz, readStream);//Carga el archivo
                 }
+                result = "success";
             }
             catch (Exception ex)
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "Azure blob error: " + ex.Message + "_" + ex.InnerException;
+                result = "fail "+ "Azure blob error: " + ex.Message + "_" + ex.InnerException; ;
             }
+            return result;
         }
         #endregion
     }

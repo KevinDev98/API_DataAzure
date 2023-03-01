@@ -312,6 +312,33 @@ namespace CleanDataCsharp.Class
             }
             return CleanDT;
         }
+        public DataTable DeleteDirtyRowSQL(DataTable dt) //Elimina las filas sucias de una tabla
+        {
+            string data = "";
+            int idx = 0;
+            DataRow NewR;
+            DataTable CleanDT = new DataTable();
+            CopyHeaders(dt, CleanDT);
+            try
+            {
+                for (int z = 0; z < dt.Rows.Count; z++)
+                {
+                    data = dt.Rows[z][0].ToString();
+                    idx = dt.Rows.IndexOf(dt.Rows[z]);
+                    NewR = dt.Rows[z];
+                    if (Convert.ToInt16(data)>-1)
+                    {
+                        CleanDT.ImportRow(NewR);
+                        CleanDT.AcceptChanges();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine("ERRORONROW dirty rows" + ex.Message);
+            }
+            return CleanDT;
+        }
         public void ControlErrores(DataTable DtErrores, int z)
         {
             DataRow row;
@@ -339,6 +366,33 @@ namespace CleanDataCsharp.Class
             DtErrores.Rows[z][0] = "ERRORONROW"; //Define fila como erronea
             DtErrores.AcceptChanges();
         }
+        public void ControlErroresSQL(DataTable DtErrores, int z)
+        {
+            DataRow row;
+            int idxRow = 0;
+            int LastCol = 0;
+            idxRow = indexerror[0];//obtiene el indice de la fila con el error
+            row = DtErrores.Rows[idxRow];//guarda toda la fila del error
+            indexerror.RemoveAt(0);//Elimina el indice de la fila erronea de la lista            
+            dataerror.ImportRow(row);//agraga la fila erronea al data table de error
+            try
+            {
+                dataerror.Columns.Add("Detalle error");//Agrega la columna del error
+            }
+            catch (Exception)
+            {
+            }
+            dataerror.AcceptChanges();//Guardar cambios
+
+            idxRow = dataerror.Rows.Count - 1; //Obtiene indice la fila actual de tabla errores 
+            LastCol = dataerror.Columns.Count - 1;//Obtiene el indice de la columna del detalle del error
+            dataerror.Rows[idxRow][LastCol] = error[0];//Define el detalle del error
+            dataerror.AcceptChanges();//Guardar cambios
+            error.RemoveAt(0);//Elimina el indice de la fila de errores
+
+            DtErrores.Rows[z][0] = -1; //Define fila como erronea
+            DtErrores.AcceptChanges();
+        }
         public DataTable GetDTErrores()
         {
             return dataerror;
@@ -361,112 +415,112 @@ namespace CleanDataCsharp.Class
         }
         #endregion
         #region Reglas aplicadas 
-        public DataTable CleanDataTableClientes(DataTable dt)
-        {
-            string data = "";
-            dataerror = new DataTable();
-            CopyHeaders(dt, dataerror);
-            for (int z = 0; z < dt.Rows.Count; z++)
-            {
-                for (int s = 0; s < dt.Columns.Count; s++)
-                {
-                    try
-                    {
-                        if (dt.Rows[z][s] == null)//Valida si la celda es null
-                        {
-                            isnull = true;
-                            indexerror.Add(z);
-                            error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            ControlErrores(dt, z);
-                        }
-                        else
-                        {
-                            data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
-                            if (string.IsNullOrEmpty(data))
-                            {
-                                isnull = true;
-                                indexerror.Add(z);
-                                error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                                ControlErrores(dt, z);
-                            }
-                        }
-                        if (!isnull)//si no es null entonces continua con el proceso
-                        {
-                            if (s == 0)
-                            {
-                                if (IsNumeric(data, z) == false)
-                                {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("ID NO NUMERICO:" + data);
-                                }
-                            }
-                            if (s == 1)
-                            {
-                                if (Validate_Names(data, z) == false)
-                                {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("MOMBRE CON FORMATO INCORRECTO:" + data);
-                                }
-                            }
-                            if (s == 2)
-                            {
-                                if (Validate_RFC(data, z) == false)
-                                {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("RFC CON FORMATO INCORRECTO:" + data);
-                                }
-                            }
-                            if (s == 3 || s == 8)
-                            {
-                                try
-                                {
-                                    dt.Rows[z][s] = Change_Date_Format(data, z);
-                                    if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
-                                    {
-                                        indexerror.Add(z);
-                                        error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
-                                        ControlErrores(dt, z);
-                                    }
-                                    else
-                                    {
-                                        Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
-                                }
-                            }
-                            if (s == 4)
-                            {
-                                if (Validate_Email(data, z) == false)
-                                {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("EMAIL CON FORMATO INCORRECTO:" + data);
-                                }
-                            }
-                            if (s == 5)
-                            {
-                                if (Validate_Phone(data, 10, z) == false)
-                                {
-                                    ControlErrores(dt, z);
-                                    //Console.WriteLine("NÚMERO CON FORMATO INCORRECTO:" + data);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        dt = new DataTable();
-                        dt.Columns.Add("ERROR");
-                        dt.Rows.Add("error limpiando datos clientes: " + ex.Message);
-                        //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
-                    }
-                }
-            }
-            dt = DropDuplicates(dt);//elimina filas duplicadas
-            return dt;
-        }
+        //public DataTable CleanDataTableClientes(DataTable dt)
+        //{
+        //    string data = "";
+        //    dataerror = new DataTable();
+        //    CopyHeaders(dt, dataerror);
+        //    for (int z = 0; z < dt.Rows.Count; z++)
+        //    {
+        //        for (int s = 0; s < dt.Columns.Count; s++)
+        //        {
+        //            try
+        //            {
+        //                if (dt.Rows[z][s] == null)//Valida si la celda es null
+        //                {
+        //                    isnull = true;
+        //                    indexerror.Add(z);
+        //                    error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                    ControlErrores(dt, z);
+        //                }
+        //                else
+        //                {
+        //                    data = dt.Rows[z][s].ToString();//DT.ROWS[FILA][COLUMNA]
+        //                    if (string.IsNullOrEmpty(data))
+        //                    {
+        //                        isnull = true;
+        //                        indexerror.Add(z);
+        //                        error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
+        //                        ControlErrores(dt, z);
+        //                    }
+        //                }
+        //                if (!isnull)//si no es null entonces continua con el proceso
+        //                {
+        //                    if (s == 0)
+        //                    {
+        //                        if (IsNumeric(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("ID NO NUMERICO:" + data);
+        //                        }
+        //                    }
+        //                    if (s == 1)
+        //                    {
+        //                        if (Validate_Names(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("MOMBRE CON FORMATO INCORRECTO:" + data);
+        //                        }
+        //                    }
+        //                    if (s == 2)
+        //                    {
+        //                        if (Validate_RFC(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("RFC CON FORMATO INCORRECTO:" + data);
+        //                        }
+        //                    }
+        //                    if (s == 3 || s == 8)
+        //                    {
+        //                        try
+        //                        {
+        //                            dt.Rows[z][s] = Change_Date_Format(data, z);
+        //                            if (dt.Rows[z][s].ToString().Contains("Error") || data.Contains("DE"))
+        //                            {
+        //                                indexerror.Add(z);
+        //                                error.Add("Fecha invalida: " + data + " el formato debe ser dd/MM/YYYY");
+        //                                ControlErrores(dt, z);
+        //                            }
+        //                            else
+        //                            {
+        //                                Validate_not_greater_today(dt.Rows[z][s].ToString(), z);
+        //                            }
+        //                        }
+        //                        catch (Exception ex)
+        //                        {
+        //                            //Console.WriteLine("FECHA CON FORMATO INCORRECTO:" + data + "-" + ex.Message);
+        //                        }
+        //                    }
+        //                    if (s == 4)
+        //                    {
+        //                        if (Validate_Email(data, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("EMAIL CON FORMATO INCORRECTO:" + data);
+        //                        }
+        //                    }
+        //                    if (s == 5)
+        //                    {
+        //                        if (Validate_Phone(data, 10, z) == false)
+        //                        {
+        //                            ControlErrores(dt, z);
+        //                            //Console.WriteLine("NÚMERO CON FORMATO INCORRECTO:" + data);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                dt = new DataTable();
+        //                dt.Columns.Add("ERROR");
+        //                dt.Rows.Add("error limpiando datos clientes: " + ex.Message);
+        //                //Console.WriteLine("error limpiando datos clientes: " + ex.Message + "s:" + s + "z" + z);
+        //            }
+        //        }
+        //    }
+        //    dt = DropDuplicates(dt);//elimina filas duplicadas
+        //    return dt;
+        //}
         //public DataTable CleanDataTableProductos(DataTable dt)
         //{
         //    string data = "";
@@ -776,7 +830,7 @@ namespace CleanDataCsharp.Class
                             //isnull = true;
                             //indexerror.Add(z);
                             //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //ControlErrores(dt, z);
+                            //ControlErroresSQL(dt, z);
                         }
                         else if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
                         {
@@ -798,7 +852,7 @@ namespace CleanDataCsharp.Class
                             }
                             //    indexerror.Add(z);
                             //    error.Add("Se encontro un valor vacio en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //    ControlErrores(dt, z);
+                            //    ControlErroresSQL(dt, z);
                         }
                         else
                         {
@@ -814,14 +868,14 @@ namespace CleanDataCsharp.Class
                             {
                                 if (Validate_RFC(dt.Rows[z][s].ToString(), z) == false)
                                 {
-                                    ControlErrores(dt, z);
+                                    ControlErroresSQL(dt, z);
                                 }
                             }
                             else if (dt.Columns[s].ColumnName.ToLower().Contains("email"))
                             {
                                 if (Validate_Email(dt.Rows[z][s].ToString(), z) == false)
                                 {
-                                    ControlErrores(dt, z);
+                                    ControlErroresSQL(dt, z);
                                 }
                                 else
                                 {
@@ -832,7 +886,7 @@ namespace CleanDataCsharp.Class
                             {
                                 if (Validate_Phone(dt.Rows[z][s].ToString(), 10, z) == false)
                                 {
-                                    ControlErrores(dt, z);
+                                    ControlErroresSQL(dt, z);
                                 }
                                 else
                                 {
@@ -843,7 +897,7 @@ namespace CleanDataCsharp.Class
                             {
                                 if (Validate_Amount(dt.Rows[z][s].ToString(), z) == false)
                                 {
-                                    ControlErrores(dt, z);
+                                    ControlErroresSQL(dt, z);
                                 }
                             }
                             else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
@@ -854,14 +908,14 @@ namespace CleanDataCsharp.Class
                                 }
                                 else
                                 {
-                                    ControlErrores(dt, z);
+                                    ControlErroresSQL(dt, z);
                                 }
                             }
                             else if (dt.Columns[s].ColumnName.ToLower().Contains("telefono") || dt.Columns[s].ColumnName.ToLower().Contains("cel") || dt.Columns[s].ColumnName.ToLower().Contains("phone"))
                             {
                                 if (Validate_Phone(dt.Rows[z][s].ToString(),10, z) == false)
                                 {
-                                    ControlErrores(dt, z);
+                                    ControlErroresSQL(dt, z);
                                 }
                                 else
                                 {

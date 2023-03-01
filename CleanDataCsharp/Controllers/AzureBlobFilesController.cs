@@ -83,7 +83,9 @@ namespace CleanDataCsharp.Controllers
                             else
                             {
                                 DT_DataSource = Functions.DropDuplicates(DT_DataSource);
-                                DT_DataSource = Functions.CleanDataTable(DT_DataSource);                                
+                                DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                                DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
+                                dataerror = Functions.GetDTErrores();
                                 try
                                 {                                    
                                     string limpios, sucios, Upload;
@@ -106,9 +108,6 @@ namespace CleanDataCsharp.Controllers
                                         }
                                         if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                                         {
-                                            DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
-                                            dataerror = Functions.GetDTErrores();
-
                                             rutaOutput = Azure.GetUrlContainer();
                                             Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
                                             if (Upload.ToLower().Contains("error"))
