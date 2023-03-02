@@ -44,7 +44,7 @@ namespace CleanDataCsharp.Controllers
         {
             try
             {
-                if (parametros.ContenedorSource == null || parametros.NombresArchivosN.Count == 0 || parametros.ContenedorTransformed == null || parametros.ContenedorRejected == null)
+                if (string.IsNullOrEmpty(parametros.ContenedorSource) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
                 {
                     errorproceso = 1;
                     response.StatusCode = HttpStatusCode.BadRequest;
@@ -218,7 +218,7 @@ namespace CleanDataCsharp.Controllers
         {
             try
             {
-                if (parametros.ContenedorRAW == null || parametros.Contenedor == null || parametros.NombresArchivosN.Count == 0)
+                if (string.IsNullOrEmpty(parametros.ContenedorRAW) || string.IsNullOrEmpty(parametros.Contenedor) || parametros.NombresArchivosN.Count == 0)
                 {
                     errorproceso = 1;
                     response.StatusCode = HttpStatusCode.BadRequest;
@@ -343,7 +343,7 @@ namespace CleanDataCsharp.Controllers
             DataValidate.Columns.Add("URL Archivo");
             try
             {
-                if (parametros.Contenedor == null || parametros.Listfilename.Count == 0)
+                if (string.IsNullOrEmpty(parametros.Contenedor) || parametros.Listfilename.Count == 0)
                 {
                     errorproceso = 1;
                     jsonresponse.CodeResponse = 0;
