@@ -67,7 +67,7 @@ namespace CleanDataCsharp.Controllers
                     jsonresponse.MessageResponse = resulttoken.result;
                     return Json(jsonresponse);
                 }
-                else if (usrexists == 0)
+                if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "usuario no valido";
@@ -197,7 +197,7 @@ namespace CleanDataCsharp.Controllers
                     jsonresponse.MessageResponse = resulttoken.result;
                     return Json(jsonresponse);
                 }
-                else if (usrexists == 0)
+                if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "usuario no valido";
