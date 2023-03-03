@@ -72,7 +72,7 @@ namespace CleanDataCsharp.Security
                             jwt.Issuer,
                             jwt.Audience,
                             claveClaim,
-                            expires: DateTime.Now.AddHours(1),
+                            expires: DateTime.Now.AddDays(1),
                             signingCredentials: SignIn
                             );
                         response.CodeResponse = 200;

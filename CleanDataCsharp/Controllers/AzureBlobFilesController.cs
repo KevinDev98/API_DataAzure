@@ -81,7 +81,7 @@ namespace CleanDataCsharp.Controllers
                     if (!resulttoken.success)
                     {
                         jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = resulttoken.result;
+                        jsonresponse.MessageResponse = resulttoken.message;
                         return Json(jsonresponse);
                     }
                     else if (usrexists==0)

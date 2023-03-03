@@ -37,7 +37,7 @@ namespace CleanDataCsharp.Class
                 return new
                 {
                     success = false,
-                    message = "",
+                    message = "error: "+ ex.Message,
                     result = ""
                 };
             }
