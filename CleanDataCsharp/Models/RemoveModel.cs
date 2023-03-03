@@ -4,6 +4,7 @@
     {
         public string Contenedor { get; set; }
         //public string? ExtencionArchivosOrigen { get; set; }
-        public List<string> Listfilename { get; set; } 
+        public List<string> Listfilename { get; set; }
+        public string? usuarioemail { get; set; }
     }
 }

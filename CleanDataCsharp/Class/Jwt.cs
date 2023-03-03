@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
+using CleanDataCsharp.Models;
 
-namespace CleanDataCsharp.Models
+namespace CleanDataCsharp.Class
 {
     public class Jwt
     {
@@ -22,8 +23,8 @@ namespace CleanDataCsharp.Models
                         message = "verificar que token sea valido",
                         result = ""
                     };
-                }                
-                var endpointBlob = identity.Claims.FirstOrDefault(X=> X.Type== "endpointBlob").Value;
+                }
+                var endpointBlob = identity.Claims.FirstOrDefault(X => X.Type == "endpointBlob").Value;
                 return new
                 {
                     success = true,

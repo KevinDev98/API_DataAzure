@@ -16,6 +16,7 @@ using CleanDataCsharp.Models;
 using static System.Net.Mime.MediaTypeNames;
 using System.ComponentModel;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace CleanDataCsharp.Controllers
 {
@@ -37,7 +38,11 @@ namespace CleanDataCsharp.Controllers
         DataTable DT_DataSource = new DataTable();
         string Contenedor, raw, transformed, curated, rejected;
         List<string> NombresArchivos = new List<string>();
+
+        public IConfiguration _Configuration;
         Jwt token = new Jwt();
+        string solicitante;
+        int usrexists = 0;
 
         [HttpPost]
         [Route("DataStandar")]
@@ -58,6 +63,19 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
+                    _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                    var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
+                    for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
+                    {
+                        solicitante = Az.AplicantsemailAddress[z];
+                        if (parametros.usuarioemail == solicitante)
+                        {
+                            usrexists = 1;
+                            break;
+                        }
+                    }
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     var resulttoken = token.ValidateTokenAzDL(identity);
                     if (!resulttoken.success)
@@ -66,12 +84,18 @@ namespace CleanDataCsharp.Controllers
                         jsonresponse.MessageResponse = resulttoken.result;
                         return Json(jsonresponse);
                     }
+                    else if (usrexists==0)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = "usuario no valido";
+                        return Json(jsonresponse);
+                    }
                     else
                     {
                         Contenedor = parametros.Contenedor;
                         raw = parametros.ContenedorRAW;
                         NombresArchivos = parametros.NombresArchivosN;
-                        Azure = new AzureFunctionsClass(Contenedor);                        
+                        Azure = new AzureFunctionsClass(Contenedor);
 
                         if (NombresArchivos.Count == 1)
                         {
@@ -189,6 +213,19 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
+                    _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                    var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
+                    for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
+                    {
+                        solicitante = Az.AplicantsemailAddress[z];
+                        if (parametros.usuarioemail == solicitante)
+                        {
+                            usrexists = 1;
+                            break;
+                        }
+                    }
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     var resulttoken = token.ValidateTokenAzDL(identity);
                     if (!resulttoken.success)
@@ -197,13 +234,19 @@ namespace CleanDataCsharp.Controllers
                         jsonresponse.MessageResponse = resulttoken.result;
                         return Json(jsonresponse);
                     }
+                    else if (usrexists == 0)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = "usuario no valido";
+                        return Json(jsonresponse);
+                    }
                     else
                     {
                         Contenedor = parametros.ContenedorSource;
                         NombresArchivos = parametros.NombresArchivosN;
                         transformed = parametros.ContenedorTransformed;
                         rejected = parametros.ContenedorRejected;
-                        Azure = new AzureFunctionsClass(Contenedor);                        
+                        Azure = new AzureFunctionsClass(Contenedor);
 
                         for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
                         {
@@ -349,7 +392,7 @@ namespace CleanDataCsharp.Controllers
             }
             return Json(jsonresponse);
         }
-        
+
         [HttpPost]
         [Route("RemoveBlobs")]
         public IActionResult RemoveBlobs(RemoveModel parametros)
@@ -370,12 +413,31 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
+                    _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                    var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
+                    for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
+                    {
+                        solicitante = Az.AplicantsemailAddress[z];
+                        if (parametros.usuarioemail == solicitante)
+                        {
+                            usrexists = 1;
+                            break;
+                        }
+                    }
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     var resulttoken = token.ValidateTokenAzDL(identity);
                     if (!resulttoken.success)
                     {
                         jsonresponse.CodeResponse = 400;
                         jsonresponse.MessageResponse = resulttoken.result;
+                        return Json(jsonresponse);
+                    }
+                    else if (usrexists == 0)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = "usuario no valido";
                         return Json(jsonresponse);
                     }
                     else

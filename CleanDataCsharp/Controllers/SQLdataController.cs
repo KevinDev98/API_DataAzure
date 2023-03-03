@@ -23,7 +23,11 @@ namespace CleanDataCsharp.Controllers
         int errorproceso;
         DataTable Process = new DataTable();
         String name;
+
+        public IConfiguration _Configuration;
         Jwt token = new Jwt();
+        string solicitante;
+        int usrexists = 0;
 
         [HttpPost]
         [Route("GetDataSQL")]
@@ -42,12 +46,31 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("resultado");
                 DataValidate.Columns.Add("URL");
 
+                _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                var sqlsConf = _Configuration.GetSection("ConnectionStrings").Get<SQL>();
+                for (int z = 0; z < sqlsConf.UsuarioSolicitante.Count; z++)
+                {
+                    solicitante = sqlsConf.UsuarioSolicitante[z];
+                    if (parametros.usuarioemail == solicitante)
+                    {
+                        usrexists = 1;
+                        break;
+                    }
+                }
                 var identity = HttpContext.User.Identity as ClaimsIdentity;
                 var resulttoken = token.ValidateTokenAzDL(identity);
                 if (!resulttoken.success)
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = resulttoken.result;
+                    return Json(jsonresponse);
+                }
+                else if (usrexists == 0)
+                {
+                    jsonresponse.CodeResponse = 400;
+                    jsonresponse.MessageResponse = "usuario no valido";
                     return Json(jsonresponse);
                 }
                 else
@@ -153,12 +176,31 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("resultado");
                 DataValidate.Columns.Add("URL");
 
+                _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                var sqlsConf = _Configuration.GetSection("ConnectionStrings").Get<SQL>();
+                for (int z = 0; z < sqlsConf.UsuarioSolicitante.Count; z++)
+                {
+                    solicitante = sqlsConf.UsuarioSolicitante[z];
+                    if (parametros.usuarioemail == solicitante)
+                    {
+                        usrexists = 1;
+                        break;
+                    }
+                }
                 var identity = HttpContext.User.Identity as ClaimsIdentity;
                 var resulttoken = token.ValidateTokenAzDL(identity);
                 if (!resulttoken.success)
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = resulttoken.result;
+                    return Json(jsonresponse);
+                }
+                else if (usrexists == 0)
+                {
+                    jsonresponse.CodeResponse = 400;
+                    jsonresponse.MessageResponse = "usuario no valido";
                     return Json(jsonresponse);
                 }
                 else

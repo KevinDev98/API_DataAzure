@@ -1,5 +1,4 @@
-﻿using CleanDataCsharp.Models;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;

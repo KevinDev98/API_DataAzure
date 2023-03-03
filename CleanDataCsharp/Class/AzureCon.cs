@@ -1,4 +1,4 @@
-﻿namespace CleanDataCsharp.Models
+﻿namespace CleanDataCsharp.Class
 {
     public class AzureCon
     {

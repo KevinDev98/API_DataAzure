@@ -8,5 +8,6 @@
         public string StrFileName { get; set; }
         public string? schemadb { get; set; }
         public string? key { get; set; }
+        public string? usuarioemail { get; set; }
     }
 }
