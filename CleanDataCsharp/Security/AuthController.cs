@@ -19,24 +19,25 @@ namespace CleanDataCsharp.Security
         public IConfiguration _configuration;
         SecurityClass Security = new SecurityClass();
         ResponsesModel response = new ResponsesModel();
+        static string EPBlobDL;
         public AuthController(IConfiguration configuration)
         {
             _configuration = configuration;
         }
-        [HttpPost]
-        [Route("AuthAz")]
-        public dynamic AuthAz([FromBody] ResponsesModel data)
+        [HttpGet]
+        [Route("Auth")]
+        public dynamic Auth(string usuario)
         {
             int exists = 0;
             var Az = _configuration.GetSection("AzureConf").Get<AzureCon>();
-            response.solicitante = data.solicitante;
+            response.solicitante = usuario;
             string email = "";
             try
             {
                 for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
                 {
                     email = Az.AplicantsemailAddress[z];
-                    if (data.solicitante == email)
+                    if (usuario == email)
                     {
                         exists = 1;
                         break;
@@ -57,7 +58,8 @@ namespace CleanDataCsharp.Security
                         new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, jwt.subject),
                         new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                         new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                        new Claim("email", data.solicitante)
+                        new Claim("email", usuario),
+                        new Claim("endpointBlob", Az.keyblob)
                     };
                     try
                     {
@@ -76,6 +78,7 @@ namespace CleanDataCsharp.Security
                         response.CodeResponse = 200;
                         var result = new JwtSecurityTokenHandler().WriteToken(token);
                         response.MessageResponse = result;
+                        EPBlobDL = Az.keyblob; //Guarda el endpoint para acceder al contenedor
                         //return new
                         //{
                         //    success = true,
@@ -97,6 +100,6 @@ namespace CleanDataCsharp.Security
             }
 
             return Json(response);
-        }
+        }        
     }
 }

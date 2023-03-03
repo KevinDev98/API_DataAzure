@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Hosting.Server;
 using System.Xml;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Configuration;
 //using Microsoft.Azure.Storage;
 
 namespace CleanDataCsharp.Class
@@ -36,11 +37,20 @@ namespace CleanDataCsharp.Class
         WebClient clientWeb;
         Stream streamAzure;
         StreamReader readerFileAzure;
-        string Str_Connect;
-        public AzureFunctionsClass(string ContainerName, string Ekey)//, string FileExtension)
+        public IConfiguration _Configuration;
+        string Str_Connect;        
+        //public AzureFunctionsClass(IConfiguration configuration)
+        //{
+        //    _Configuration = configuration;
+        //}
+        public AzureFunctionsClass(string ContainerName)//, string FileExtension)
         {
+            _Configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+            var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
             ContainerNameA = ContainerName;
-            Str_Connect=Ekey;
+            Str_Connect =Az.keyblob;
             //ExtenFile = FileExtension;
         }
         #region Var Azure

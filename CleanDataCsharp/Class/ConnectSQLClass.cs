@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using CleanDataCsharp.Models;
+using Microsoft.Extensions.Configuration;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
@@ -7,19 +9,24 @@ namespace CleanDataCsharp.Class
 {
     public class ConnectSQLClass
     {
-        protected readonly IConfiguration Configuration;
+        //protected readonly IConfiguration _Configuration;
+        public IConfiguration _Configuration;
         SecurityClass Security = new SecurityClass();
-        SqlConnectionStringBuilder ConStringBuilder = new();
-
+        SqlConnectionStringBuilder ConStringBuilder = new();        
         public SqlConnection conectionSQL()
         {
             try
             {
-                ConStringBuilder.DataSource = Security.DesEncriptar("cwByAHYAcgBkAGIAcwBxAGwAdgBlAG4AdABhAHMALgBkAGEAdABhAGIAYQBzAGUALgB3AGkAbgBkAG8AdwBzAC4AbgBlAHQA");
-                ConStringBuilder.InitialCatalog = Security.DesEncriptar("dABlAHMAdABzAHEAbAB2AGUAbgB0AGEAcwA=");
+                _Configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+                var SQLS = _Configuration.GetSection("ConnectionStrings").Get<SQL>();
+
+                ConStringBuilder.DataSource = Security.DesEncriptar(SQLS.srvr);
+                ConStringBuilder.InitialCatalog = Security.DesEncriptar(SQLS.db);
                 ConStringBuilder.IntegratedSecurity = false;
-                ConStringBuilder.UserID = Security.DesEncriptar("cwBhAHMAcQBsAA==");
-                ConStringBuilder.Password = Security.DesEncriptar("SABvAGwAYQAxADIAMwArAA==");
+                ConStringBuilder.UserID = Security.DesEncriptar(SQLS.us);
+                ConStringBuilder.Password = Security.DesEncriptar(SQLS.pwd);
                 ConStringBuilder.ConnectTimeout = 60;
                 var cssql = ConStringBuilder.ConnectionString;
                 SqlConnection connection = new SqlConnection(cssql);
@@ -38,13 +45,14 @@ namespace CleanDataCsharp.Class
             SqlCommand ExecCommand = CommandConnection.CreateCommand();          
             return ExecCommand;
         }
-        public DataTable GetTable_SPSQL(string SP = "", int Bandera = 0, string TableName = "")
+        public DataTable GetTable_SPSQL(string SP = "", int Bandera = 0, string SchemaName="", string TableName = "")
         {
             DataTable DataResult = new DataTable();
             SqlCommand ExecCommand = Comando();
             ExecCommand.CommandType = System.Data.CommandType.StoredProcedure;
             ExecCommand.CommandText = SP;
             ExecCommand.Parameters.Add("@BANDERA", SqlDbType.Int).Value = Bandera;
+            ExecCommand.Parameters.Add("@SCHEMANAME", SqlDbType.VarChar).Value = SchemaName;
             ExecCommand.Parameters.Add("@TABLENAME", SqlDbType.VarChar).Value = TableName;
             DataResult.TableName = SP;
             try

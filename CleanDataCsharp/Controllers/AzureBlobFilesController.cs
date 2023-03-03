@@ -37,18 +37,21 @@ namespace CleanDataCsharp.Controllers
         DataTable DT_DataSource = new DataTable();
         string Contenedor, raw, transformed, curated, rejected;
         List<string> NombresArchivos = new List<string>();
-        HttpResponseMessage response = new HttpResponseMessage();
         Jwt token = new Jwt();
+
         [HttpPost]
-        [Route("DataTransformed")]
-        public IActionResult DataTransformed(TransformedModel parametros)
+        [Route("DataStandar")]
+        public IActionResult Estandarizacion(RawModel parametros) //from raw to clean
         {
             try
             {
-                if (string.IsNullOrEmpty(parametros.ContenedorSource) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
+                DataValidate = new DataTable();
+                DataValidate.Columns.Add("Status code");
+                DataValidate.Columns.Add("Archivo Trabajado");
+                DataValidate.Columns.Add("URL Archivo");
+                if (string.IsNullOrEmpty(parametros.ContenedorRAW) || string.IsNullOrEmpty(parametros.Contenedor) || parametros.NombresArchivosN.Count == 0)
                 {
                     errorproceso = 1;
-                    response.StatusCode = HttpStatusCode.BadRequest;
                     //jsonresponse.Response = response;
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "Parametros vacios";
@@ -56,7 +59,138 @@ namespace CleanDataCsharp.Controllers
                 else
                 {
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateToken(identity);
+                    var resulttoken = token.ValidateTokenAzDL(identity);
+                    if (!resulttoken.success)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = resulttoken.result;
+                        return Json(jsonresponse);
+                    }
+                    else
+                    {
+                        Contenedor = parametros.Contenedor;
+                        raw = parametros.ContenedorRAW;
+                        NombresArchivos = parametros.NombresArchivosN;
+                        Azure = new AzureFunctionsClass(Contenedor);                        
+
+                        if (NombresArchivos.Count == 1)
+                        {
+                            rutaOutput = Azure.GetUrlContainer();
+                            FileName = NombresArchivos[0];
+                            if (FileName == "*")
+                            {
+                                NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
+                            }
+                        }
+                        for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                        {
+                            DT_DataSource = new DataTable();
+                            dataerror = new DataTable();
+
+                            FileName = NombresArchivos[k];
+                            DT_DataSource = Azure.TransformFileforAzure(FileName);
+                            if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                            {
+                                errorproceso = 1;
+                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString());
+                            }
+                            else
+                            {
+                                DT_DataSource = Functions.DropDuplicates(DT_DataSource);
+                                try
+                                {
+                                    dataerror = Functions.GetDTErrores();
+                                    string limpios, Upload;
+                                    string URL = "";
+                                    //FileName = FileName.Replace("Clean", "");
+                                    if (FileName.Contains(".csv"))
+                                    {
+                                        FileName = FileName.Replace(".csv", "");
+                                    }
+                                    else if (FileName.Contains(".json"))
+                                    {
+                                        FileName = FileName.Replace(".json", "");
+                                    }
+                                    else if (FileName.Contains(".xml"))
+                                    {
+                                        FileName = FileName.Replace(".xml", "");
+                                    }
+                                    if (DT_DataSource.Rows.Count > 0)
+                                    {
+                                        rutaOutput = Azure.GetUrlContainer();
+                                        Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: raw);
+                                        if (Upload.ToLower().Contains("error"))
+                                        {
+                                            errorproceso = 1;
+                                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error cargando el archivo", Upload);
+                                        }
+                                        else
+                                        {
+                                            rutaOutput = Azure.GetUrlContainer();
+                                            rutaOutput = rutaOutput.Replace(Contenedor, raw);
+                                            URL = rutaOutput + FileName + ".csv";
+                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, URL);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    errorproceso = 1;
+                                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message + "_" + ex.InnerException;
+                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorproceso = 1;
+                jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
+                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+            }
+            if (errorproceso == 0)
+            {
+                //jsonresponse.Response = response;
+                jsonresponse.CodeResponse = 200;
+                jsonresponse.MessageResponse = "Proceso Terminado con Exito";
+                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+            }
+            else
+            {
+                jsonresponse.CodeResponse = 404;
+                jsonresponse.MessageResponse = "No se cargaron todos los archivos";
+                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+            }
+            return Json(jsonresponse);
+        }
+
+        [HttpPost]
+        [Route("DataTransformed")]
+        public IActionResult DataTransformed(TransformedModel parametros)
+        {
+            try
+            {
+                DataValidate = new DataTable();
+                DataValidate.Columns.Add("Status Code");
+                DataValidate.Columns.Add("Archivo Trabajado");
+                DataValidate.Columns.Add("Archivo transformed");
+                DataValidate.Columns.Add("URL transformed");
+                DataValidate.Columns.Add("Archivo Rejected");
+                DataValidate.Columns.Add("URL Rejected");
+
+                if (string.IsNullOrEmpty(parametros.ContenedorSource) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
+                {
+                    errorproceso = 1;
+                    //jsonresponse.Response = response;
+                    jsonresponse.CodeResponse = 400;
+                    jsonresponse.MessageResponse = "Parametros vacios";
+                }
+                else
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    var resulttoken = token.ValidateTokenAzDL(identity);
                     if (!resulttoken.success)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -69,15 +203,7 @@ namespace CleanDataCsharp.Controllers
                         NombresArchivos = parametros.NombresArchivosN;
                         transformed = parametros.ContenedorTransformed;
                         rejected = parametros.ContenedorRejected;
-                        Azure = new AzureFunctionsClass(Contenedor, parametros.key);
-
-                        DataValidate = new DataTable();
-                        DataValidate.Columns.Add("Status Code");
-                        DataValidate.Columns.Add("Archivo Trabajado");
-                        DataValidate.Columns.Add("Archivo transformed");
-                        DataValidate.Columns.Add("URL transformed");
-                        DataValidate.Columns.Add("Archivo Rejected");
-                        DataValidate.Columns.Add("URL Rejected");
+                        Azure = new AzureFunctionsClass(Contenedor);                        
 
                         for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
                         {
@@ -223,137 +349,7 @@ namespace CleanDataCsharp.Controllers
             }
             return Json(jsonresponse);
         }
-
-        [HttpPost]
-        [Route("DataStandar")]
-        public IActionResult Estandarizacion(RawModel parametros) //from raw to clean
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(parametros.ContenedorRAW) || string.IsNullOrEmpty(parametros.Contenedor) || parametros.NombresArchivosN.Count == 0)
-                {
-                    errorproceso = 1;
-                    response.StatusCode = HttpStatusCode.BadRequest;
-                    //jsonresponse.Response = response;
-                    jsonresponse.CodeResponse = 400;
-                    jsonresponse.MessageResponse = "Parametros vacios";
-                }
-                else
-                {
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateToken(identity);
-                    if (!resulttoken.success)
-                    {
-                        jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = resulttoken.result;
-                        return Json(jsonresponse);
-                    }
-                    else
-                    {
-                        Contenedor = parametros.Contenedor;
-                        raw = parametros.ContenedorRAW;
-                        NombresArchivos = parametros.NombresArchivosN;
-                        Azure = new AzureFunctionsClass(Contenedor, parametros.key);
-
-                        DataValidate = new DataTable();
-                        DataValidate.Columns.Add("Status code");
-                        DataValidate.Columns.Add("Archivo Trabajado");
-                        DataValidate.Columns.Add("URL Archivo");
-
-                        if (NombresArchivos.Count == 1)
-                        {
-                            rutaOutput = Azure.GetUrlContainer();
-                            FileName = NombresArchivos[0];
-                            if (FileName == "*")
-                            {
-                                NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
-                            }
-                        }
-                        for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
-                        {
-                            DT_DataSource = new DataTable();
-                            dataerror = new DataTable();
-
-                            FileName = NombresArchivos[k];
-                            DT_DataSource = Azure.TransformFileforAzure(FileName);
-                            if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
-                            {
-                                errorproceso = 1;
-                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString());
-                            }
-                            else
-                            {
-                                DT_DataSource = Functions.DropDuplicates(DT_DataSource);
-                                try
-                                {
-                                    dataerror = Functions.GetDTErrores();
-                                    string limpios, Upload;
-                                    string URL = "";
-                                    //FileName = FileName.Replace("Clean", "");
-                                    if (FileName.Contains(".csv"))
-                                    {
-                                        FileName = FileName.Replace(".csv", "");
-                                    }
-                                    else if (FileName.Contains(".json"))
-                                    {
-                                        FileName = FileName.Replace(".json", "");
-                                    }
-                                    else if (FileName.Contains(".xml"))
-                                    {
-                                        FileName = FileName.Replace(".xml", "");
-                                    }
-                                    if (DT_DataSource.Rows.Count > 0)
-                                    {
-                                        rutaOutput = Azure.GetUrlContainer();
-                                        Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: raw);
-                                        if (Upload.ToLower().Contains("error"))
-                                        {
-                                            errorproceso = 1;
-                                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error cargando el archivo", Upload);
-                                        }
-                                        else
-                                        {
-                                            rutaOutput = Azure.GetUrlContainer();
-                                            rutaOutput = rutaOutput.Replace(Contenedor, raw);
-                                            URL = rutaOutput + FileName + ".csv";
-                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, URL);
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    errorproceso = 1;
-                                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message + "_" + ex.InnerException;
-                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                errorproceso = 1;
-                jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
-                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
-            }
-            if (errorproceso == 0)
-            {
-                response.StatusCode = HttpStatusCode.OK;
-                //jsonresponse.Response = response;
-                jsonresponse.CodeResponse = 200;
-                jsonresponse.MessageResponse = "Proceso Terminado con Exito";
-                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
-            }
-            else
-            {
-                jsonresponse.CodeResponse = 404;
-                jsonresponse.MessageResponse = "No se cargaron todos los archivos";
-                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
-            }
-            return Json(jsonresponse);
-        }
-
+        
         [HttpPost]
         [Route("RemoveBlobs")]
         public IActionResult RemoveBlobs(RemoveModel parametros)
@@ -375,7 +371,7 @@ namespace CleanDataCsharp.Controllers
                 else
                 {
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateToken(identity);
+                    var resulttoken = token.ValidateTokenAzDL(identity);
                     if (!resulttoken.success)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -386,7 +382,7 @@ namespace CleanDataCsharp.Controllers
                     {
                         Contenedor = parametros.Contenedor;
                         NombresArchivos = parametros.Listfilename;
-                        Azure = new AzureFunctionsClass(Contenedor, parametros.key);
+                        Azure = new AzureFunctionsClass(Contenedor);
                         if (NombresArchivos.Count == 1)
                         {
                             rutaOutput = Azure.GetUrlContainer();

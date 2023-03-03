@@ -10,7 +10,7 @@ namespace CleanDataCsharp.Models
         public string Audience { get; set; }
         public string subject { get; set; }
 
-        public dynamic ValidateToken(ClaimsIdentity identity)
+        public dynamic ValidateTokenAzDL(ClaimsIdentity identity)
         {
             try
             {
@@ -23,12 +23,12 @@ namespace CleanDataCsharp.Models
                         result = ""
                     };
                 }                
-                var email=identity.Claims.FirstOrDefault(X=> X.Type== "email").Value;
+                var endpointBlob = identity.Claims.FirstOrDefault(X=> X.Type== "endpointBlob").Value;
                 return new
                 {
                     success = true,
                     message = "token valido",
-                    result = email
+                    result = endpointBlob
                 };
             }
             catch (Exception ex)
