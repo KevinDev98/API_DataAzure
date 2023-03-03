@@ -59,15 +59,15 @@ namespace CleanDataCsharp.Controllers
                         break;
                     }
                 }
-                var identity = HttpContext.User.Identity as ClaimsIdentity;
-                var resulttoken = token.ValidateTokenAzDL(identity);
-                if (!resulttoken.success)
-                {
-                    jsonresponse.CodeResponse = 400;
-                    jsonresponse.MessageResponse = resulttoken.result;
-                    return Json(jsonresponse);
-                }
-                else if (usrexists == 0)
+                //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                //var resulttoken = token.ValidateTokenAzDL(identity);
+                //if (!resulttoken.success)
+                //{
+                //    jsonresponse.CodeResponse = 400;
+                //    jsonresponse.MessageResponse = resulttoken.result;
+                //    return Json(jsonresponse);
+                //}
+                if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "usuario no valido";
@@ -189,15 +189,15 @@ namespace CleanDataCsharp.Controllers
                         break;
                     }
                 }
-                var identity = HttpContext.User.Identity as ClaimsIdentity;
-                var resulttoken = token.ValidateTokenAzDL(identity);
-                if (!resulttoken.success)
-                {
-                    jsonresponse.CodeResponse = 400;
-                    jsonresponse.MessageResponse = resulttoken.result;
-                    return Json(jsonresponse);
-                }
-                else if (usrexists == 0)
+                //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                //var resulttoken = token.ValidateTokenAzDL(identity);
+                //if (!resulttoken.success)
+                //{
+                //    jsonresponse.CodeResponse = 400;
+                //    jsonresponse.MessageResponse = resulttoken.result;
+                //    return Json(jsonresponse);
+                //}
+                if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "usuario no valido";
