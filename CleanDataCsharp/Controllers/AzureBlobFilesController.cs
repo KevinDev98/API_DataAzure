@@ -15,6 +15,7 @@ using CleanDataCsharp.Class;
 using CleanDataCsharp.Models;
 using static System.Net.Mime.MediaTypeNames;
 using System.ComponentModel;
+using System.Security.Claims;
 
 namespace CleanDataCsharp.Controllers
 {
@@ -37,7 +38,7 @@ namespace CleanDataCsharp.Controllers
         string Contenedor, raw, transformed, curated, rejected;
         List<string> NombresArchivos = new List<string>();
         HttpResponseMessage response = new HttpResponseMessage();
-
+        Jwt token = new Jwt();
         [HttpPost]
         [Route("DataTransformed")]
         public IActionResult DataTransformed(TransformedModel parametros)
@@ -54,145 +55,156 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
-                    Contenedor = parametros.ContenedorSource;
-                    NombresArchivos = parametros.NombresArchivosN;
-                    transformed = parametros.ContenedorTransformed;
-                    rejected = parametros.ContenedorRejected;
-                    Azure = new AzureFunctionsClass(Contenedor, parametros.key);
-
-                    DataValidate = new DataTable();
-                    DataValidate.Columns.Add("Status Code");
-                    DataValidate.Columns.Add("Archivo Trabajado");
-                    DataValidate.Columns.Add("Archivo transformed");
-                    DataValidate.Columns.Add("URL transformed");
-                    DataValidate.Columns.Add("Archivo Rejected");
-                    DataValidate.Columns.Add("URL Rejected");
-
-                    for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    var resulttoken = token.ValidateToken(identity);
+                    if (!resulttoken.success)
                     {
-                        FileName = NombresArchivos[k];
-                        DT_DataSource = new DataTable();
-                        try
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = resulttoken.result;
+                        return Json(jsonresponse);
+                    }
+                    else
+                    {
+                        Contenedor = parametros.ContenedorSource;
+                        NombresArchivos = parametros.NombresArchivosN;
+                        transformed = parametros.ContenedorTransformed;
+                        rejected = parametros.ContenedorRejected;
+                        Azure = new AzureFunctionsClass(Contenedor, parametros.key);
+
+                        DataValidate = new DataTable();
+                        DataValidate.Columns.Add("Status Code");
+                        DataValidate.Columns.Add("Archivo Trabajado");
+                        DataValidate.Columns.Add("Archivo transformed");
+                        DataValidate.Columns.Add("URL transformed");
+                        DataValidate.Columns.Add("Archivo Rejected");
+                        DataValidate.Columns.Add("URL Rejected");
+
+                        for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
                         {
-                            DT_DataSource = Azure.TransformFileforAzure(FileName);
-                            if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                            FileName = NombresArchivos[k];
+                            DT_DataSource = new DataTable();
+                            try
                             {
-                                errorproceso = 1;
-                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString(), "Incorrecto", "Incorrecto", "Incorrecto");
-                            }
-                            else
-                            {
-                                DT_DataSource = Functions.DropDuplicates(DT_DataSource);
-                                DT_DataSource = Functions.CleanDataTable(DT_DataSource);
-                                DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
-                                dataerror = Functions.GetDTErrores();
-                                try
-                                {                                    
-                                    string limpios, sucios, Upload;
-                                    string URLlimpios = "";
-                                    string URLsucios = "";
-                                    //FileName = FileName.Replace("Clean", "");
-                                    if (DT_DataSource.Rows.Count > 0)
+                                DT_DataSource = Azure.TransformFileforAzure(FileName);
+                                if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                                {
+                                    errorproceso = 1;
+                                    DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString(), "Incorrecto", "Incorrecto", "Incorrecto");
+                                }
+                                else
+                                {
+                                    DT_DataSource = Functions.DropDuplicates(DT_DataSource);
+                                    DT_DataSource = Functions.CleanDataTable(DT_DataSource);
+                                    DT_DataSource = Functions.DeleteDirtyRows(DT_DataSource);
+                                    dataerror = Functions.GetDTErrores();
+                                    try
                                     {
-                                        if (FileName.Contains(".csv"))
+                                        string limpios, sucios, Upload;
+                                        string URLlimpios = "";
+                                        string URLsucios = "";
+                                        //FileName = FileName.Replace("Clean", "");
+                                        if (DT_DataSource.Rows.Count > 0)
                                         {
-                                            FileName = FileName.Replace(".csv", "");
-                                        }
-                                        else if (FileName.Contains(".json"))
-                                        {
-                                            FileName = FileName.Replace(".json", "");
-                                        }
-                                        else if (FileName.Contains(".xml"))
-                                        {
-                                            FileName = FileName.Replace(".xml", "");
-                                        }
-                                        if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
-                                        {
-                                            rutaOutput = Azure.GetUrlContainer();
-                                            Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
-                                            if (Upload.ToLower().Contains("error"))
+                                            if (FileName.Contains(".csv"))
                                             {
-                                                errorproceso = 1;
-                                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, Upload, "Incorrecto", "Incorrecto", "Incorrecto");
+                                                FileName = FileName.Replace(".csv", "");
                                             }
-                                        }
-                                        else
-                                        {
-                                            rutaOutput = Azure.GetUrlContainer();
-                                            Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "transformed_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: transformed);
-                                            if (Upload.ToLower().Contains("error"))
+                                            else if (FileName.Contains(".json"))
                                             {
-                                                errorproceso = 1;
-                                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, Upload, "Incorrecto", "Incorrecto", "Incorrecto");
+                                                FileName = FileName.Replace(".json", "");
+                                            }
+                                            else if (FileName.Contains(".xml"))
+                                            {
+                                                FileName = FileName.Replace(".xml", "");
+                                            }
+                                            if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                                            {
+                                                rutaOutput = Azure.GetUrlContainer();
+                                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                                if (Upload.ToLower().Contains("error"))
+                                                {
+                                                    errorproceso = 1;
+                                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, Upload, "Incorrecto", "Incorrecto", "Incorrecto");
+                                                }
                                             }
                                             else
                                             {
                                                 rutaOutput = Azure.GetUrlContainer();
-                                                rutaOutput = rutaOutput.Replace(Contenedor, transformed);
-                                                URLlimpios = rutaOutput + "transformed_" + FileName + ".csv";
-                                                if (dataerror.Rows.Count > 0)
+                                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "transformed_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: transformed);
+                                                if (Upload.ToLower().Contains("error"))
                                                 {
-                                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
-                                                    if (Upload.ToLower().Contains("error"))
+                                                    errorproceso = 1;
+                                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, Upload, "Incorrecto", "Incorrecto", "Incorrecto");
+                                                }
+                                                else
+                                                {
+                                                    rutaOutput = Azure.GetUrlContainer();
+                                                    rutaOutput = rutaOutput.Replace(Contenedor, transformed);
+                                                    URLlimpios = rutaOutput + "transformed_" + FileName + ".csv";
+                                                    if (dataerror.Rows.Count > 0)
                                                     {
-                                                        errorproceso = 1;
-                                                        DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, Upload, "Incorrecto", "Incorrecto", "Incorrecto");
+                                                        Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                                        if (Upload.ToLower().Contains("error"))
+                                                        {
+                                                            errorproceso = 1;
+                                                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, Upload, "Incorrecto", "Incorrecto", "Incorrecto");
+                                                        }
+                                                        else
+                                                        {
+                                                            //limpios y sucios
+                                                            rutaOutput = Azure.GetUrlContainer();
+                                                            rutaOutput = rutaOutput.Replace(Contenedor, rejected);
+                                                            URLsucios = rutaOutput + "Rejected_" + FileName + ".csv";
+                                                            limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
+                                                            sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
+                                                            DataValidate.Rows.Add(HttpStatusCode.OK, FileName, limpios, URLlimpios, sucios, URLsucios);
+                                                        }
                                                     }
                                                     else
                                                     {
-                                                        //limpios y sucios
+                                                        //solo limpios
                                                         rutaOutput = Azure.GetUrlContainer();
                                                         rutaOutput = rutaOutput.Replace(Contenedor, rejected);
-                                                        URLsucios = rutaOutput + "Rejected_" + FileName + ".csv";
+                                                        URLsucios = "No se encontraron registros sucios";
                                                         limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
                                                         sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
                                                         DataValidate.Rows.Add(HttpStatusCode.OK, FileName, limpios, URLlimpios, sucios, URLsucios);
                                                     }
                                                 }
-                                                else
-                                                {
-                                                    //solo limpios
-                                                    rutaOutput = Azure.GetUrlContainer();
-                                                    rutaOutput = rutaOutput.Replace(Contenedor, rejected);
-                                                    URLsucios = "No se encontraron registros sucios";
-                                                    limpios = "Filas limpias:" + DT_DataSource.Rows.Count.ToString();
-                                                    sucios = "Filas sucuias:" + dataerror.Rows.Count.ToString();
-                                                    DataValidate.Rows.Add(HttpStatusCode.OK, FileName, limpios, URLlimpios, sucios, URLsucios);
-                                                }
                                             }
                                         }
                                     }
-                                }
-                                catch (Exception ex)
-                                {
-                                    errorproceso = 1;
-                                    //response.StatusCode = HttpStatusCode.BadRequest;
-                                    ////jsonresponse.Response = response;
-                                    jsonresponse.CodeResponse = 400;
-                                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message+ "_"+ ex.InnerException;
-                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                                    catch (Exception ex)
+                                    {
+                                        errorproceso = 1;
+                                        //response.StatusCode = HttpStatusCode.BadRequest;
+                                        ////jsonresponse.Response = response;
+                                        jsonresponse.CodeResponse = 400;
+                                        jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message + "_" + ex.InnerException;
+                                        DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                                    }
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            errorproceso = 1;
-                            //response.StatusCode = HttpStatusCode.BadRequest;
-                            ////jsonresponse.Response = response;
-                            jsonresponse.CodeResponse = 400;
-                            jsonresponse.MessageResponse = "Error en el proceso: " + ex.Message+ "_"+ ex.InnerException;
-                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                            catch (Exception ex)
+                            {
+                                errorproceso = 1;
+                                //response.StatusCode = HttpStatusCode.BadRequest;
+                                ////jsonresponse.Response = response;
+                                jsonresponse.CodeResponse = 400;
+                                jsonresponse.MessageResponse = "Error en el proceso: " + ex.Message + "_" + ex.InnerException;
+                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
-            {                
+            {
                 errorproceso = 1;
                 //response.StatusCode = HttpStatusCode.BadRequest;
                 ////jsonresponse.Response = response;
                 jsonresponse.CodeResponse = 400;
-                jsonresponse.MessageResponse = "Error en el proceso Transformed: " + ex.Message+ "_"+ ex.InnerException;
+                jsonresponse.MessageResponse = "Error en el proceso Transformed: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
             }
             if (errorproceso == 0)
@@ -228,82 +240,92 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
-                    Contenedor = parametros.Contenedor;
-                    raw = parametros.ContenedorRAW;
-                    NombresArchivos = parametros.NombresArchivosN;
-                    Azure = new AzureFunctionsClass(Contenedor, parametros.key);
-
-                    DataValidate = new DataTable();
-                    DataValidate.Columns.Add("Status code");
-                    DataValidate.Columns.Add("Archivo Trabajado");
-                    DataValidate.Columns.Add("URL Archivo");
-
-                    if (NombresArchivos.Count == 1)
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    var resulttoken = token.ValidateToken(identity);
+                    if (!resulttoken.success)
                     {
-                        rutaOutput = Azure.GetUrlContainer();
-                        FileName = NombresArchivos[0];
-                        if (FileName == "*")
-                        {
-                            NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
-                        }
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = resulttoken.result;
+                        return Json(jsonresponse);
                     }
-
-                    for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                    else
                     {
-                        DT_DataSource = new DataTable();
-                        dataerror = new DataTable();
+                        Contenedor = parametros.Contenedor;
+                        raw = parametros.ContenedorRAW;
+                        NombresArchivos = parametros.NombresArchivosN;
+                        Azure = new AzureFunctionsClass(Contenedor, parametros.key);
 
-                        FileName = NombresArchivos[k];
-                        DT_DataSource = Azure.TransformFileforAzure(FileName);
-                        if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                        DataValidate = new DataTable();
+                        DataValidate.Columns.Add("Status code");
+                        DataValidate.Columns.Add("Archivo Trabajado");
+                        DataValidate.Columns.Add("URL Archivo");
+
+                        if (NombresArchivos.Count == 1)
                         {
-                            errorproceso = 1;
-                            DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString());
-                        }
-                        else
-                        {
-                            DT_DataSource = Functions.DropDuplicates(DT_DataSource);
-                            try
+                            rutaOutput = Azure.GetUrlContainer();
+                            FileName = NombresArchivos[0];
+                            if (FileName == "*")
                             {
-                                dataerror = Functions.GetDTErrores();
-                                string limpios, Upload;
-                                string URL = "";
-                                //FileName = FileName.Replace("Clean", "");
-                                if (FileName.Contains(".csv"))
-                                {
-                                    FileName = FileName.Replace(".csv", "");
-                                }
-                                else if (FileName.Contains(".json"))
-                                {
-                                    FileName = FileName.Replace(".json", "");
-                                }
-                                else if (FileName.Contains(".xml"))
-                                {
-                                    FileName = FileName.Replace(".xml", "");
-                                }
-                                if (DT_DataSource.Rows.Count > 0)
-                                {
-                                    rutaOutput = Azure.GetUrlContainer();
-                                    Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: raw);
-                                    if (Upload.ToLower().Contains("error"))
-                                    {
-                                        errorproceso = 1;
-                                        DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error cargando el archivo", Upload);
-                                    }
-                                    else
-                                    {
-                                        rutaOutput = Azure.GetUrlContainer();
-                                        rutaOutput = rutaOutput.Replace(Contenedor, raw);
-                                        URL = rutaOutput + FileName + ".csv";
-                                        DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, URL);
-                                    }
-                                }
+                                NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
                             }
-                            catch (Exception ex)
+                        }
+                        for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                        {
+                            DT_DataSource = new DataTable();
+                            dataerror = new DataTable();
+
+                            FileName = NombresArchivos[k];
+                            DT_DataSource = Azure.TransformFileforAzure(FileName);
+                            if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                             {
                                 errorproceso = 1;
-                                jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message+ "_"+ ex.InnerException;
-                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString());
+                            }
+                            else
+                            {
+                                DT_DataSource = Functions.DropDuplicates(DT_DataSource);
+                                try
+                                {
+                                    dataerror = Functions.GetDTErrores();
+                                    string limpios, Upload;
+                                    string URL = "";
+                                    //FileName = FileName.Replace("Clean", "");
+                                    if (FileName.Contains(".csv"))
+                                    {
+                                        FileName = FileName.Replace(".csv", "");
+                                    }
+                                    else if (FileName.Contains(".json"))
+                                    {
+                                        FileName = FileName.Replace(".json", "");
+                                    }
+                                    else if (FileName.Contains(".xml"))
+                                    {
+                                        FileName = FileName.Replace(".xml", "");
+                                    }
+                                    if (DT_DataSource.Rows.Count > 0)
+                                    {
+                                        rutaOutput = Azure.GetUrlContainer();
+                                        Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: raw);
+                                        if (Upload.ToLower().Contains("error"))
+                                        {
+                                            errorproceso = 1;
+                                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error cargando el archivo", Upload);
+                                        }
+                                        else
+                                        {
+                                            rutaOutput = Azure.GetUrlContainer();
+                                            rutaOutput = rutaOutput.Replace(Contenedor, raw);
+                                            URL = rutaOutput + FileName + ".csv";
+                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, URL);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    errorproceso = 1;
+                                    jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message + "_" + ex.InnerException;
+                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                                }
                             }
                         }
                     }
@@ -312,7 +334,7 @@ namespace CleanDataCsharp.Controllers
             catch (Exception ex)
             {
                 errorproceso = 1;
-                jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message+ "_"+ ex.InnerException;
+                jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
             }
             if (errorproceso == 0)
@@ -352,39 +374,51 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
-                    Contenedor = parametros.Contenedor;
-                    NombresArchivos = parametros.Listfilename;
-                    Azure = new AzureFunctionsClass(Contenedor, parametros.key);
-                    if (NombresArchivos.Count == 1)
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    var resulttoken = token.ValidateToken(identity);
+                    if (!resulttoken.success)
                     {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = resulttoken.result;
+                        return Json(jsonresponse);
+                    }
+                    else
+                    {
+                        Contenedor = parametros.Contenedor;
+                        NombresArchivos = parametros.Listfilename;
+                        Azure = new AzureFunctionsClass(Contenedor, parametros.key);
+                        if (NombresArchivos.Count == 1)
+                        {
+                            rutaOutput = Azure.GetUrlContainer();
+                            FileName = NombresArchivos[0];
+                            if (FileName == "*")
+                            {
+                                NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
+                            }
+                        }
                         rutaOutput = Azure.GetUrlContainer();
-                        FileName = NombresArchivos[0];
-                        if (FileName == "*")
+                        for (int k = 0; k < NombresArchivos.Count; k++)
                         {
-                            NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
+                            FileName = NombresArchivos[k];
+                            remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: Contenedor);
+                            if (remove.ToLower().Contains("error"))
+                            {
+                                errorproceso = 1;
+                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                            }
+                            else
+                            {
+                                DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
+                            }
                         }
                     }
-                    rutaOutput = Azure.GetUrlContainer();
-                    for (int k = 0; k < NombresArchivos.Count; k++)
-                    {
-                        FileName = NombresArchivos[k];
-                        remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: Contenedor);
-                        if (remove.ToLower().Contains("error"))
-                        {
-                            errorproceso = 1;
-                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
-                        }
-                        else
-                        {
-                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
-                        }
-                    }
+
                 }
             }
             catch (Exception ex)
             {
                 errorproceso = 1;
-                jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message+ "_"+ ex.InnerException;
+                jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
             }
             if (errorproceso == 0)

@@ -2,7 +2,8 @@
 {
     public class AzureCon
     {
-        public string Key { get; set; }
-        public string Aplicantsemail { get; set; }
+        public string? Key { get; set; }
+        public string? keyblob { get; set; }
+        public List<string>? AplicantsemailAddress { get; set; }
     }
 }
