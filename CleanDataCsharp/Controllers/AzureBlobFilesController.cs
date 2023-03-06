@@ -84,7 +84,7 @@ namespace CleanDataCsharp.Controllers
                     //    jsonresponse.MessageResponse = resulttoken.message;
                     //    return Json(jsonresponse);
                     //}
-                    if (usrexists==0)
+                    if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
                         jsonresponse.MessageResponse = "usuario no valido";
@@ -467,6 +467,110 @@ namespace CleanDataCsharp.Controllers
                             else
                             {
                                 DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                errorproceso = 1;
+                jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message + "_" + ex.InnerException;
+                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+            }
+            if (errorproceso == 0)
+            {
+                //response.StatusCode = HttpStatusCode.OK;
+                ////jsonresponse.Response = response;
+                jsonresponse.CodeResponse = 200;
+                jsonresponse.MessageResponse = "Proceso Terminado con Exito. Archivos eliminados";
+                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+            }
+            else
+            {
+                jsonresponse.CodeResponse = 404;
+                jsonresponse.MessageResponse = "No se eliminaron todos los archivos";
+                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+            }
+            return Json(jsonresponse);
+        }
+
+        [HttpPost]
+        [Route("MoveBlobs")]
+        public IActionResult MoveBlobs(ParametrosModel parametros)
+        {
+            DataValidate = new DataTable();
+            DataValidate.Columns.Add("Status code");
+            DataValidate.Columns.Add("Archivo Trabajado");
+            DataValidate.Columns.Add("URL Archivo");
+            try
+            {
+                if (string.IsNullOrEmpty(parametros.ContenedorSource) || string.IsNullOrEmpty(parametros.ContenedorDestino) || parametros.NombresArchivos.Count == 0 || string.IsNullOrEmpty(parametros.usuarioemail))
+                {
+                    errorproceso = 1;
+                    jsonresponse.CodeResponse = 0;
+                    jsonresponse.MessageResponse = "Parametros vacios";
+                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "vacio", jsonresponse.MessageResponse);
+                }
+                else
+                {
+                    string remove, Move;
+                    _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                    var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
+                    for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
+                    {
+                        solicitante = Az.AplicantsemailAddress[z];
+                        if (parametros.usuarioemail == solicitante)
+                        {
+                            usrexists = 1;
+                            break;
+                        }
+                    }
+                    if (usrexists == 0)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = "usuario no valido";
+                        return Json(jsonresponse);
+                    }
+                    else
+                    {
+                        NombresArchivos = parametros.NombresArchivos;
+                        Azure = new AzureFunctionsClass(Contenedor);
+                        if (NombresArchivos.Count == 1)
+                        {
+                            rutaOutput = Azure.GetUrlContainer();
+                            FileName = NombresArchivos[0];
+                            if (FileName == "*")
+                            {
+                                NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
+                            }
+                        }
+                        rutaOutput = Azure.GetUrlContainer();
+                        for (int k = 0; k < NombresArchivos.Count; k++)
+                        {
+                            FileName = NombresArchivos[k];
+                            DT_DataSource = Azure.TransformFileforAzure(FileName);
+                            Move = Azure.UploadBlobDLSG2(PathBlob: "", FilenameAz: FileName, table: DT_DataSource, ContainerBlobName: parametros.ContenedorDestino);
+                            if (Move.ToLower().Contains("error"))
+                            {
+                                errorproceso = 1;
+                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                            }
+                            else
+                            {
+                                remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: parametros.ContenedorSource);
+                                if (remove.ToLower().Contains("error"))
+                                {
+                                    errorproceso = 1;
+                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                                }
+                                else
+                                {
+                                    DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
+                                }
                             }
                         }
                     }
