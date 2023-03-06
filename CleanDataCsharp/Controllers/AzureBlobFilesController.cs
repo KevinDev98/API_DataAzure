@@ -557,7 +557,7 @@ namespace CleanDataCsharp.Controllers
                             if (Move.ToLower().Contains("error"))
                             {
                                 errorproceso = 1;
-                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", Move);
                             }
                             else
                             {
