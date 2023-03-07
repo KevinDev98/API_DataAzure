@@ -425,19 +425,19 @@ namespace CleanDataCsharp.Controllers
                             usrexists = 1;
                             break;
                         }
-                    }
-                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    //var resulttoken = token.ValidateTokenAzDL(identity);
-                    //if (!resulttoken.success)
-                    //{
-                    //    jsonresponse.CodeResponse = 400;
-                    //    jsonresponse.MessageResponse = resulttoken.result;
-                    //    return Json(jsonresponse);
-                    //}
+                    }                    
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
                         jsonresponse.MessageResponse = "usuario no valido";
+                        return Json(jsonresponse);
+                    }
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    var resulttoken = token.ValidateTokenAzDL(identity);
+                    if (!resulttoken.success)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = resulttoken.result;
                         return Json(jsonresponse);
                     }
                     else
@@ -533,6 +533,14 @@ namespace CleanDataCsharp.Controllers
                     {
                         jsonresponse.CodeResponse = 400;
                         jsonresponse.MessageResponse = "usuario no valido";
+                        return Json(jsonresponse);
+                    }
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    var resulttoken = token.ValidateTokenAzDL(identity);
+                    if (!resulttoken.success)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = resulttoken.result;
                         return Json(jsonresponse);
                     }
                     else
