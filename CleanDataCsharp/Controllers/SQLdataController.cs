@@ -75,7 +75,7 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
-                    DT_DataSource = sqls.GetTable_SPSQL("SP_GET_TABLE", 0, parametros.TableName);
+                    DT_DataSource = sqls.GetTable_SPSQL("SP_GET_TABLE", 0, parametros.schemadb, parametros.TableName);
                     if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                     {
                         TorF = true;
@@ -83,7 +83,7 @@ namespace CleanDataCsharp.Controllers
                     if (TorF == false)
                     {
                         jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = "error consultando los datos SQL: " + DT_DataSource.Rows[0][0].ToString;
+                        jsonresponse.MessageResponse = "error consultando los datos SQL: " + DT_DataSource.Rows[0][0].ToString();
                     }
                     else
                     {
@@ -205,7 +205,7 @@ namespace CleanDataCsharp.Controllers
                 }
                 else
                 {
-                    DT_DataSource = sqls.GetTable_SPSQL("SP_GET_TABLE", 0, parametros.TableName);
+                    DT_DataSource = sqls.GetTable_SPSQL("SP_GET_TABLE", 0, parametros.schemadb, parametros.TableName);
                     if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                     {
                         TorF = true;
@@ -213,7 +213,7 @@ namespace CleanDataCsharp.Controllers
                     if (TorF == false)
                     {
                         jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = "error consultando los datos SQL: " + DT_DataSource.Rows[0][0].ToString;
+                        jsonresponse.MessageResponse = "error consultando los datos SQL: " + DT_DataSource.Rows[0][0].ToString();
                     }
                     else
                     {
@@ -305,7 +305,7 @@ namespace CleanDataCsharp.Controllers
                                     DataValidate.Rows.Add(statusCode.ToString(), name, jsonresponse.MessageResponse, url + "rejectedSQL_Table_" + name);
                                 }
                                 //jsonresponse.CodeResponse = 400;
-                                //jsonresponse.MessageResponse = "error procesando datos SQL: " + DT_DataSource.Rows[0][0].ToString;
+                                //jsonresponse.MessageResponse = "error procesando datos SQL: " + DT_DataSource.Rows[0][0].ToString();
                             }
 
                         }
