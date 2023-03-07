@@ -33,7 +33,7 @@ namespace CleanDataCsharp.Controllers
         [Route("GetDataSQL")]
         public IActionResult GetDataSQL(SQLDataModel parametros)
         {
-            if (string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName) || string.IsNullOrEmpty(parametros.key))
+            if (string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName))
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "parametros vacios";
@@ -124,7 +124,7 @@ namespace CleanDataCsharp.Controllers
                             }
                             else
                             {
-                                FAzure = new AzureFunctionsClass(parametros.contenedorRejec);
+                                FAzure = new AzureFunctionsClass(parametros.contenedorRejected);
                                 url = FAzure.GetUrlContainer();
                                 Upload = FAzure.FromSQLtoBlobDLSG2(parametros.StrFileName, DT_DataSource);
                                 if (Upload.ToLower().Contains("error"))
@@ -163,7 +163,7 @@ namespace CleanDataCsharp.Controllers
         [Route("TransformDataSQL")]
         public IActionResult TransformDataSQL(SQLDataModel parametros)
         {
-            if (string.IsNullOrEmpty(parametros.contenedorRejec) || string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName) || string.IsNullOrEmpty(parametros.key))
+            if (string.IsNullOrEmpty(parametros.contenedorRejected) || string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName))
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "parametros vacios";
@@ -256,7 +256,7 @@ namespace CleanDataCsharp.Controllers
                                 }
                                 if (dataerror.Rows.Count > 0)
                                 {
-                                    FAzure = new AzureFunctionsClass(parametros.contenedorRejec);
+                                    FAzure = new AzureFunctionsClass(parametros.contenedorRejected);
                                     Process = dataerror;
                                     name = "rejectedSQL_Table_" + parametros.StrFileName;
                                     url = FAzure.GetUrlContainer();
@@ -283,7 +283,7 @@ namespace CleanDataCsharp.Controllers
                             }
                             else
                             {
-                                FAzure = new AzureFunctionsClass(parametros.contenedorRejec);
+                                FAzure = new AzureFunctionsClass(parametros.contenedorRejected);
                                 url = FAzure.GetUrlContainer();
                                 Upload = FAzure.FromSQLtoBlobDLSG2(parametros.StrFileName, DT_DataSource);
                                 if (Upload.ToLower().Contains("error"))
