@@ -44,19 +44,30 @@ namespace CleanDataCsharp.Class
             SqlCommand ExecCommand = CommandConnection.CreateCommand();          
             return ExecCommand;
         }
-        public DataTable GetTable_SPSQL(string SP = "", int Bandera = 0, string SchemaName="", string TableName = "")
+        public DataTable GetTable_SPSQL(string SP = "", int Bandera = 0, string SchemaName = "", string TableName = "")
         {
             DataTable DataResult = new DataTable();
-            SqlCommand ExecCommand = Comando();
-            ExecCommand.CommandType = System.Data.CommandType.StoredProcedure;
-            ExecCommand.CommandText = SP;
-            ExecCommand.Parameters.Add("@BANDERA", SqlDbType.Int).Value = Bandera;
-            ExecCommand.Parameters.Add("@SCHEMANAME", SqlDbType.VarChar).Value = SchemaName;
-            ExecCommand.Parameters.Add("@TABLENAME", SqlDbType.VarChar).Value = TableName;
-            DataResult.TableName = SP;
             try
             {
-                DataResult.Load(ExecCommand.ExecuteReader());                
+                SqlCommand ExecCommand = Comando();
+                ExecCommand.CommandType = System.Data.CommandType.StoredProcedure;
+                ExecCommand.CommandText = SP;
+                ExecCommand.Parameters.Add("@BANDERA", SqlDbType.Int).Value = Bandera;
+                ExecCommand.Parameters.Add("@SCHEMANAME", SqlDbType.VarChar).Value = SchemaName;
+                ExecCommand.Parameters.Add("@TABLENAME", SqlDbType.VarChar).Value = TableName;
+                DataResult.TableName = SP;
+                try
+                {
+                    DataResult.Load(ExecCommand.ExecuteReader());
+                }
+                catch (Exception ex)
+                {
+                    DataResult.TableName = "Exception";
+                    DataResult.Columns.Add("ERROR");
+                    DataRow row = DataResult.NewRow();
+                    row["ERROR"] = ex.Message + "_" + ex.InnerException;
+                    DataResult.Rows.Add(row);
+                }
             }
             catch (Exception ex)
             {
