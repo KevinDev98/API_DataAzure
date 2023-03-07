@@ -458,15 +458,25 @@ namespace CleanDataCsharp.Controllers
                         for (int k = 0; k < NombresArchivos.Count; k++)
                         {
                             FileName = NombresArchivos[k];
-                            remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: Contenedor);
-                            if (remove.ToLower().Contains("error"))
+                            DT_DataSource = Azure.TransformFileforAzure(FileName);
+                            Move = Azure.UploadBlobDLSG2(PathBlob: "", FilenameAz: FileName, table: DT_DataSource, ContainerBlobName: parametros.ContenedorDestino);
+                            if (Move.ToLower().Contains("error"))
                             {
                                 errorproceso = 1;
-                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                                DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", Move);
                             }
                             else
                             {
-                                DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
+                                remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: parametros.ContenedorSource);
+                                if (remove.ToLower().Contains("error"))
+                                {
+                                    errorproceso = 1;
+                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                                }
+                                else
+                                {
+                                    DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
+                                }
                             }
                         }
                     }
