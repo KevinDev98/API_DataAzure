@@ -33,7 +33,7 @@ namespace CleanDataCsharp.Controllers
         [Route("GetDataSQL")]
         public IActionResult GetDataSQL(SQLDataModel parametros)
         {
-            if (string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName) || string.IsNullOrEmpty(parametros.key))
+            if (string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName))
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "parametros vacios";
@@ -93,7 +93,7 @@ namespace CleanDataCsharp.Controllers
                             dataerror = Functions.GetDTErrores();
                             string url, Upload, limpios, sucios;
                             HttpStatusCode statusCode;
-                            
+
                             if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                             {
                                 if (DT_DataSource.Rows.Count > 0)
@@ -163,7 +163,7 @@ namespace CleanDataCsharp.Controllers
         [Route("TransformDataSQL")]
         public IActionResult TransformDataSQL(SQLDataModel parametros)
         {
-            if (string.IsNullOrEmpty(parametros.contenedorRejec) || string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName) || string.IsNullOrEmpty(parametros.key))
+            if (string.IsNullOrEmpty(parametros.contenedorRejec) || string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName))
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "parametros vacios";
@@ -225,7 +225,7 @@ namespace CleanDataCsharp.Controllers
                             dataerror = Functions.GetDTErrores();
                             string url, Upload, limpios, sucios;
                             HttpStatusCode statusCode;
-                            
+
                             if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                             {
                                 if (DT_DataSource.Rows.Count > 0)
