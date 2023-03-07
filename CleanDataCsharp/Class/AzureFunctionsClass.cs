@@ -188,13 +188,13 @@ namespace CleanDataCsharp.Class
         }
         public string RemoveFiles(string PathBlob, string FilenameAz, string ContainerBlobName)
         {
-            Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
-            CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
-            string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
-            CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
-            var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
+            //Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
+            //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
+            //CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient(); //Se instancia un blob Client
+            //CloudBlobContainer containercloud = blobClient.GetContainerReference(ContainerNameA);//NOMBRE DEL CONTENEDOR AL QUE SE HACE REF
+            //string filePathRoot = FilenameAz;//URL DEL CONTENEDOR
+            //CloudBlobDirectory cloudBlobDirectory = containercloud.GetDirectoryReference(filePathRoot);
+            //var blockBlob = containercloud.GetBlockBlobReference(FilenameAz);
             try
             {
                 Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
