@@ -47,7 +47,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("DataStandar")]
-        public IActionResult Estandarizacion(RawModel parametros) //from raw to clean
+        public dynamic Estandarizacion(RawModel parametros) //from raw to clean
         {
             try
             {
@@ -84,7 +84,15 @@ namespace CleanDataCsharp.Controllers
                             usrexists = 1;
                             break;
                         }
-                    }                    
+                    }
+                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    //var resulttoken = token.ValidateTokenAzDL(identity);
+                    //if (!resulttoken.success)
+                    //{
+                    //    jsonresponse.CodeResponse = 400;
+                    //    jsonresponse.MessageResponse = resulttoken.message;
+                    //    return Json(jsonresponse);
+                    //}
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -178,6 +186,12 @@ namespace CleanDataCsharp.Controllers
                                     errorproceso = 1;
                                     jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message + "_" + ex.InnerException;
                                     DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                                    return new
+                                    {
+                                        succes = false,
+                                        message = jsonresponse.MessageResponse,
+                                        result = HttpStatusCode.BadRequest.ToString()
+                                    };
                                 }
                             }
                         }
@@ -191,6 +205,12 @@ namespace CleanDataCsharp.Controllers
                 jsonresponse.status = statusCode;
                 jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                return new
+                {
+                    succes = false,
+                    message = jsonresponse.MessageResponse,
+                    result = HttpStatusCode.BadRequest.ToString()
+                };
             }
             if (errorproceso == 0)
             {
@@ -214,7 +234,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("DataTransformed")]
-        public IActionResult DataTransformed(TransformedModel parametros)
+        public dynamic DataTransformed(TransformedModel parametros)
         {
             try
             {
@@ -247,15 +267,23 @@ namespace CleanDataCsharp.Controllers
                     .AddJsonFile("appsettings.json")
                     .Build();
                     var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
-                    for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
-                    {
-                        solicitante = Az.AplicantsemailAddress[z];
-                        if (parametros.usuarioemail == solicitante)
-                        {
-                            usrexists = 1;
-                            break;
-                        }
                     }                    
+                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    //var resulttoken = token.ValidateTokenAzDL(identity);
+                    //if (!resulttoken.success)
+                    //{
+                    //    jsonresponse.CodeResponse = 400;
+                    //    jsonresponse.MessageResponse = resulttoken.result;
+                    //    return Json(jsonresponse);
+                    //}
+                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    //var resulttoken = token.ValidateTokenAzDL(identity);
+                    //if (!resulttoken.success)
+                    //{
+                    //    jsonresponse.CodeResponse = 400;
+                    //    jsonresponse.MessageResponse = resulttoken.result;
+                    //    return Json(jsonresponse);
+                    //}
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -377,6 +405,12 @@ namespace CleanDataCsharp.Controllers
                                         jsonresponse.CodeResponse = 400;
                                         jsonresponse.MessageResponse = "Error al enviar archivos al contenedor " + Contenedor + " y el archivo " + NombresArchivos[k].ToString() + ": " + ex.Message + "_" + ex.InnerException;
                                         DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                                        return new
+                                        {
+                                            succes = false,
+                                            message = jsonresponse.MessageResponse,
+                                            result = HttpStatusCode.BadRequest.ToString()
+                                        };
                                     }
                                 }
                             }
@@ -388,6 +422,12 @@ namespace CleanDataCsharp.Controllers
                                 jsonresponse.CodeResponse = 400;
                                 jsonresponse.MessageResponse = "Error en el proceso: " + ex.Message + "_" + ex.InnerException;
                                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                                return new
+                                {
+                                    succes = false,
+                                    message = jsonresponse.MessageResponse,
+                                    result = HttpStatusCode.BadRequest.ToString()
+                                };
                             }
                         }
                     }
@@ -401,6 +441,12 @@ namespace CleanDataCsharp.Controllers
                 jsonresponse.CodeResponse = 400;
                 jsonresponse.MessageResponse = "Error en el proceso Transformed: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse, "Incorrecto", "Incorrecto", "Incorrecto");
+                return new
+                {
+                    succes = false,
+                    message = jsonresponse.MessageResponse,
+                    result = HttpStatusCode.BadRequest.ToString()
+                };
             }
             if (errorproceso == 0)
             {
@@ -421,7 +467,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("RemoveBlobs")]
-        public IActionResult RemoveBlobs(RemoveModel parametros)
+        public dynamic RemoveBlobs(RemoveModel parametros)
         {
             string remove = "";
             DataValidate = new DataTable();
@@ -504,6 +550,12 @@ namespace CleanDataCsharp.Controllers
                 errorproceso = 1;
                 jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                return new
+                {
+                    succes = false,
+                    message = jsonresponse.MessageResponse,
+                    result = HttpStatusCode.BadRequest.ToString()
+                };
             }
             if (errorproceso == 0)
             {
@@ -524,7 +576,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("MoveBlobs")]
-        public IActionResult MoveBlobs(ParametrosModel parametros)
+        public dynamic MoveBlobs(ParametrosModel parametros)
         {
             DataValidate = new DataTable();
             DataValidate.Columns.Add("Status code");
@@ -616,6 +668,12 @@ namespace CleanDataCsharp.Controllers
                 errorproceso = 1;
                 jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
+                return new
+                {
+                    succes = false,
+                    message = jsonresponse.MessageResponse,
+                    result = HttpStatusCode.BadRequest.ToString()
+                };
             }
             if (errorproceso == 0)
             {
