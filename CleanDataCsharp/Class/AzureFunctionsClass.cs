@@ -108,7 +108,7 @@ namespace CleanDataCsharp.Class
 
             return DataValidate;
         }
-        public DataTable TransformFileforAzure(string FileName)
+        public DataTable TransformFileforAzure(string FileName, string delimiter="")
         {
             try
             {
@@ -122,7 +122,11 @@ namespace CleanDataCsharp.Class
                 readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
                 if (FileName.ToLower().Contains(".csv"))
                 {
-                    DT_DataSource = Functions.FromCsvForDataTable(readerFileAzure);//Manda a transformar el archivo a DataTable
+                    if (string.IsNullOrEmpty(delimiter))
+                    {
+                        delimiter= ",";
+                    }
+                    DT_DataSource = Functions.FromCsvForDataTable(readerFileAzure,delimiter);//Manda a transformar el archivo a DataTable
                 }
                 else if (FileName.ToLower().Contains(".xml"))
                 {

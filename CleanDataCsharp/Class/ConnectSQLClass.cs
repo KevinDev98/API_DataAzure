@@ -44,7 +44,7 @@ namespace CleanDataCsharp.Class
             SqlCommand ExecCommand = CommandConnection.CreateCommand();          
             return ExecCommand;
         }
-        public DataTable GetTable_SPSQL(string SP = "", int Bandera = 0, string SchemaName="", string TableName = "")
+        public DataTable GetTable_SPSQL(string SP = "", int Bandera = 0, string SchemaName = "", string TableName = "")
         {
             DataTable DataResult = new DataTable();
             try
