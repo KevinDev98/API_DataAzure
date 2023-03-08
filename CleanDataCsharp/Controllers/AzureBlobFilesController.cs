@@ -140,7 +140,7 @@ namespace CleanDataCsharp.Controllers
                                     dataerror = Functions.GetDTErrores();
                                     string limpios, Upload;
                                     string URL = "";
-                                    string Ext="";
+                                    string Ext = "";
                                     //FileName = FileName.Replace("Clean", "");
                                     if (FileName.Contains(".csv"))
                                     {
@@ -200,7 +200,7 @@ namespace CleanDataCsharp.Controllers
             }
             catch (Exception ex)
             {
-                errorproceso = 1;                
+                errorproceso = 1;
                 statusCode = HttpStatusCode.BadRequest;
                 jsonresponse.status = statusCode;
                 jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
@@ -267,23 +267,7 @@ namespace CleanDataCsharp.Controllers
                     .AddJsonFile("appsettings.json")
                     .Build();
                     var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
-                    }                    
-                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    //var resulttoken = token.ValidateTokenAzDL(identity);
-                    //if (!resulttoken.success)
-                    //{
-                    //    jsonresponse.CodeResponse = 400;
-                    //    jsonresponse.MessageResponse = resulttoken.result;
-                    //    return Json(jsonresponse);
-                    //}
-                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    //var resulttoken = token.ValidateTokenAzDL(identity);
-                    //if (!resulttoken.success)
-                    //{
-                    //    jsonresponse.CodeResponse = 400;
-                    //    jsonresponse.MessageResponse = resulttoken.result;
-                    //    return Json(jsonresponse);
-                    //}
+
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -484,7 +468,7 @@ namespace CleanDataCsharp.Controllers
                     DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "vacio", jsonresponse.MessageResponse);
                 }
                 else
-                {                    
+                {
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     var resulttoken = token.ValidateTokenAzDL(identity);
                     if (!resulttoken.success)
@@ -542,7 +526,6 @@ namespace CleanDataCsharp.Controllers
                             }
                         }
                     }
-
                 }
             }
             catch (Exception ex)
