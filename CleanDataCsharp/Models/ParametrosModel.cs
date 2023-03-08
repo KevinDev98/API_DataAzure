@@ -2,7 +2,7 @@
 {
     public class ParametrosModel
     {
-        public string? ContenedorSource { get; set; }
+        public string? ContenedorOrigen { get; set; }
         public string? ContenedorDestino { get; set; }
         //public string? ExtencionArchivosN { get; set; }
         public List<string> NombresArchivos { get; set; }
