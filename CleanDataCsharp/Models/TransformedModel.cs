@@ -7,7 +7,6 @@
         public string? ContenedorRejected { get; set; }
         //public string? ExtencionArchivosN { get; set; }
         public List<string>? NombresArchivosN { get; set; }
-        public string? delimitador { get; set; } 
         public string? usuarioemail { get; set; }
     }
 }
