@@ -139,6 +139,10 @@ namespace CleanDataCsharp.Controllers
                                     {
                                         FileName = FileName.Replace(".xml", "");
                                     }
+                                    else if (FileName.Contains(".txt"))
+                                    {
+                                        FileName = FileName.Replace(".txt", "");
+                                    }
                                     if (DT_DataSource.Rows.Count > 0)
                                     {
                                         rutaOutput = Azure.GetUrlContainer();
@@ -204,7 +208,7 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("Archivo Rejected");
                 DataValidate.Columns.Add("URL Rejected");
 
-                if (string.IsNullOrEmpty(parametros.ContenedorSource) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
+                if (string.IsNullOrEmpty(parametros.ContenedorOrigen) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
                 {
                     errorproceso = 1;
                     //jsonresponse.Response = response;
@@ -242,7 +246,7 @@ namespace CleanDataCsharp.Controllers
                     }
                     else
                     {
-                        Contenedor = parametros.ContenedorSource;
+                        Contenedor = parametros.ContenedorOrigen;
                         NombresArchivos = parametros.NombresArchivosN;
                         transformed = parametros.ContenedorTransformed;
                         rejected = parametros.ContenedorRejected;
@@ -285,6 +289,10 @@ namespace CleanDataCsharp.Controllers
                                             else if (FileName.Contains(".xml"))
                                             {
                                                 FileName = FileName.Replace(".xml", "");
+                                            }
+                                            else if (FileName.Contains(".txt"))
+                                            {
+                                                FileName = FileName.Replace(".txt", "");
                                             }
                                             if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                                             {
@@ -506,7 +514,7 @@ namespace CleanDataCsharp.Controllers
             DataValidate.Columns.Add("URL Archivo");
             try
             {
-                if (string.IsNullOrEmpty(parametros.ContenedorSource) || string.IsNullOrEmpty(parametros.ContenedorDestino) || parametros.NombresArchivos.Count == 0 || string.IsNullOrEmpty(parametros.usuarioemail))
+                if (string.IsNullOrEmpty(parametros.ContenedorOrigen) || string.IsNullOrEmpty(parametros.ContenedorDestino) || parametros.NombresArchivos.Count == 0 || string.IsNullOrEmpty(parametros.usuarioemail))
                 {
                     errorproceso = 1;
                     jsonresponse.CodeResponse = 0;
@@ -561,7 +569,7 @@ namespace CleanDataCsharp.Controllers
                             }
                             else
                             {
-                                remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: parametros.ContenedorSource);
+                                remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: parametros.ContenedorOrigen);
                                 if (remove.ToLower().Contains("error"))
                                 {
                                     errorproceso = 1;

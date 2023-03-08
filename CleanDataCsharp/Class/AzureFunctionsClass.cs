@@ -120,7 +120,7 @@ namespace CleanDataCsharp.Class
                 FileName = BlobStrg.Name;
                 streamAzure = clientWeb.OpenRead(rutaDLSG2_Clean);//Transforma los datos del archivo de origen
                 readerFileAzure = new StreamReader(streamAzure);//Transforma la data en archivo
-                if (FileName.ToLower().Contains(".csv"))
+                if (FileName.ToLower().Contains(".csv") || FileName.ToLower().Contains(".txt"))
                 {
                     if (string.IsNullOrEmpty(delimiter))
                     {
