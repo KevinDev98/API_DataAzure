@@ -93,7 +93,7 @@ namespace CleanDataCsharp.Controllers
                             dataerror = Functions.GetDTErrores();
                             string url, Upload, limpios, sucios;
                             HttpStatusCode statusCode;
-                            
+
                             if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                             {
                                 if (DT_DataSource.Rows.Count > 0)
@@ -225,7 +225,7 @@ namespace CleanDataCsharp.Controllers
                             dataerror = Functions.GetDTErrores();
                             string url, Upload, limpios, sucios;
                             HttpStatusCode statusCode;
-                            
+
                             if (!DT_DataSource.Columns[0].ColumnName.Contains("ERROR"))
                             {
                                 if (DT_DataSource.Rows.Count > 0)

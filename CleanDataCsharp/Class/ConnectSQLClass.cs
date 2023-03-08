@@ -76,7 +76,7 @@ namespace CleanDataCsharp.Class
                 DataRow row = DataResult.NewRow();
                 row["ERROR"] = ex.Message + "_" + ex.InnerException;
                 DataResult.Rows.Add(row);
-            }
+            }            
             return DataResult;
         }
     }

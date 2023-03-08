@@ -1109,7 +1109,7 @@ namespace CleanDataCsharp.Class
             }
             return data;
         }
-        public DataTable FromCsvForDataTable(StreamReader DataReaderCSV) //Recibe un CSV de Azure y lo transforma en DataTable
+        public DataTable FromCsvForDataTable(StreamReader DataReaderCSV, string delimiter = "") //Recibe un CSV de Azure y lo transforma en DataTable
         {
             DataTable dt = new DataTable();
             using (DataReaderCSV)
@@ -1123,7 +1123,7 @@ namespace CleanDataCsharp.Class
                 {
                     while (!DataReaderCSV.EndOfStream)
                     {
-                        string[] rows = DataReaderCSV.ReadLine().Split(",");
+                        string[] rows = DataReaderCSV.ReadLine().Split(delimiter);
                         DataRow dr = dt.NewRow();
                         string data;
                         for (int i = 0; i < headers.Length; i++)
