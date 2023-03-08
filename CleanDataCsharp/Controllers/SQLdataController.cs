@@ -47,6 +47,14 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("resultado");
                 DataValidate.Columns.Add("URL");
 
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var resulttoken = token.ValidateTokenAzDL(identity);
+                if (!resulttoken.success)
+                {
+                    jsonresponse.CodeResponse = 400;
+                    jsonresponse.MessageResponse = resulttoken.result;
+                    return Json(jsonresponse);
+                }
                 _Configuration = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json")
                     .Build();
@@ -59,15 +67,7 @@ namespace CleanDataCsharp.Controllers
                         usrexists = 1;
                         break;
                     }
-                }
-                var identity = HttpContext.User.Identity as ClaimsIdentity;
-                var resulttoken = token.ValidateTokenAzDL(identity);
-                if (!resulttoken.success)
-                {
-                    jsonresponse.CodeResponse = 400;
-                    jsonresponse.MessageResponse = resulttoken.result;
-                    return Json(jsonresponse);
-                }
+                }                
                 if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
@@ -183,6 +183,14 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("resultado");
                 DataValidate.Columns.Add("URL");
 
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var resulttoken = token.ValidateTokenAzDL(identity);
+                if (!resulttoken.success)
+                {
+                    jsonresponse.CodeResponse = 400;
+                    jsonresponse.MessageResponse = resulttoken.result;
+                    return Json(jsonresponse);
+                }
                 _Configuration = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json")
                     .Build();
@@ -195,15 +203,7 @@ namespace CleanDataCsharp.Controllers
                         usrexists = 1;
                         break;
                     }
-                }
-                var identity = HttpContext.User.Identity as ClaimsIdentity;
-                var resulttoken = token.ValidateTokenAzDL(identity);
-                if (!resulttoken.success)
-                {
-                    jsonresponse.CodeResponse = 400;
-                    jsonresponse.MessageResponse = resulttoken.result;
-                    return Json(jsonresponse);
-                }
+                }                
                 if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
