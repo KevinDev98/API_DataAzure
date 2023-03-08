@@ -38,6 +38,7 @@ namespace CleanDataCsharp.Controllers
         DataTable DT_DataSource = new DataTable();
         string Contenedor, raw, transformed, curated, rejected;
         List<string> NombresArchivos = new List<string>();
+        HttpStatusCode statusCode = new HttpStatusCode();
 
         public IConfiguration _Configuration;
         Jwt token = new Jwt();
@@ -54,7 +55,7 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("Status code");
                 DataValidate.Columns.Add("Archivo Trabajado");
                 DataValidate.Columns.Add("URL Archivo");
-                if (string.IsNullOrEmpty(parametros.ContenedorRAW) || string.IsNullOrEmpty(parametros.Contenedor) || parametros.NombresArchivosN.Count == 0)
+                if (string.IsNullOrEmpty(parametros.ContenedorRAW) || string.IsNullOrEmpty(parametros.ContenedorIngesta) || parametros.NombresArchivosN.Count == 0)
                 {
                     errorproceso = 1;
                     //jsonresponse.Response = response;
@@ -76,15 +77,15 @@ namespace CleanDataCsharp.Controllers
                             break;
                         }
                     }
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateTokenAzDL(identity);
-                    if (!resulttoken.success)
-                    {
-                        jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = resulttoken.message;
-                        return Json(jsonresponse);
-                    }
-                    else if (usrexists==0)
+                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    //var resulttoken = token.ValidateTokenAzDL(identity);
+                    //if (!resulttoken.success)
+                    //{
+                    //    jsonresponse.CodeResponse = 400;
+                    //    jsonresponse.MessageResponse = resulttoken.message;
+                    //    return Json(jsonresponse);
+                    //}
+                    if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
                         jsonresponse.MessageResponse = "usuario no valido";
@@ -92,7 +93,7 @@ namespace CleanDataCsharp.Controllers
                     }
                     else
                     {
-                        Contenedor = parametros.Contenedor;
+                        Contenedor = parametros.ContenedorIngesta;
                         raw = parametros.ContenedorRAW;
                         NombresArchivos = parametros.NombresArchivosN;
                         Azure = new AzureFunctionsClass(Contenedor);
@@ -112,6 +113,11 @@ namespace CleanDataCsharp.Controllers
                             dataerror = new DataTable();
 
                             FileName = NombresArchivos[k];
+                            if (!FileName.Contains("csv") || !FileName.Contains("txt") || !FileName.Contains("json") || !FileName.Contains("xml"))
+                            {
+                                errorproceso = 1;
+                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, "Tipo de archivo no soportado");
+                            }
                             DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
                             if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                             {
@@ -126,23 +132,33 @@ namespace CleanDataCsharp.Controllers
                                     dataerror = Functions.GetDTErrores();
                                     string limpios, Upload;
                                     string URL = "";
+                                    string Ext="";
                                     //FileName = FileName.Replace("Clean", "");
                                     if (FileName.Contains(".csv"))
                                     {
                                         FileName = FileName.Replace(".csv", "");
+                                        Ext = "csv_";
                                     }
                                     else if (FileName.Contains(".json"))
                                     {
                                         FileName = FileName.Replace(".json", "");
+                                        Ext = "json_";
                                     }
                                     else if (FileName.Contains(".xml"))
                                     {
                                         FileName = FileName.Replace(".xml", "");
+                                        Ext = "xml_";
                                     }
+                                    else if (FileName.Contains(".txt"))
+                                    {
+                                        FileName = FileName.Replace(".txt", "");
+                                        Ext = "txt_";
+                                    }
+                                    FileName = "Origen_" + Ext + FileName;
                                     if (DT_DataSource.Rows.Count > 0)
                                     {
                                         rutaOutput = Azure.GetUrlContainer();
-                                        Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: raw);
+                                        Upload = Azure.UploadBlobDLSG2(FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: raw);
                                         if (Upload.ToLower().Contains("error"))
                                         {
                                             errorproceso = 1;
@@ -153,7 +169,7 @@ namespace CleanDataCsharp.Controllers
                                             rutaOutput = Azure.GetUrlContainer();
                                             rutaOutput = rutaOutput.Replace(Contenedor, raw);
                                             URL = rutaOutput + FileName + ".csv";
-                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, URL);
+                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName + ".csv", URL);
                                         }
                                     }
                                 }
@@ -170,19 +186,25 @@ namespace CleanDataCsharp.Controllers
             }
             catch (Exception ex)
             {
-                errorproceso = 1;
+                errorproceso = 1;                
+                statusCode = HttpStatusCode.BadRequest;
+                jsonresponse.status = statusCode;
                 jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
             }
             if (errorproceso == 0)
             {
                 //jsonresponse.Response = response;
+                statusCode = HttpStatusCode.OK;
+                jsonresponse.status = statusCode;
                 jsonresponse.CodeResponse = 200;
                 jsonresponse.MessageResponse = "Proceso Terminado con Exito";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
             }
             else
             {
+                statusCode = HttpStatusCode.NotFound;
+                jsonresponse.status = statusCode;
                 jsonresponse.CodeResponse = 404;
                 jsonresponse.MessageResponse = "No se cargaron todos los archivos";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
@@ -204,7 +226,7 @@ namespace CleanDataCsharp.Controllers
                 DataValidate.Columns.Add("Archivo Rejected");
                 DataValidate.Columns.Add("URL Rejected");
 
-                if (string.IsNullOrEmpty(parametros.ContenedorSource) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
+                if (string.IsNullOrEmpty(parametros.ContenedorOrigen) || parametros.NombresArchivosN.Count == 0 || string.IsNullOrEmpty(parametros.ContenedorTransformed) || string.IsNullOrEmpty(parametros.ContenedorRejected))
                 {
                     errorproceso = 1;
                     //jsonresponse.Response = response;
@@ -226,14 +248,14 @@ namespace CleanDataCsharp.Controllers
                             break;
                         }
                     }
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateTokenAzDL(identity);
-                    if (!resulttoken.success)
-                    {
-                        jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = resulttoken.result;
-                        return Json(jsonresponse);
-                    }
+                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    //var resulttoken = token.ValidateTokenAzDL(identity);
+                    //if (!resulttoken.success)
+                    //{
+                    //    jsonresponse.CodeResponse = 400;
+                    //    jsonresponse.MessageResponse = resulttoken.result;
+                    //    return Json(jsonresponse);
+                    //}
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -242,7 +264,7 @@ namespace CleanDataCsharp.Controllers
                     }
                     else
                     {
-                        Contenedor = parametros.ContenedorSource;
+                        Contenedor = parametros.ContenedorOrigen;
                         NombresArchivos = parametros.NombresArchivosN;
                         transformed = parametros.ContenedorTransformed;
                         rejected = parametros.ContenedorRejected;
@@ -286,10 +308,14 @@ namespace CleanDataCsharp.Controllers
                                             {
                                                 FileName = FileName.Replace(".xml", "");
                                             }
+                                            else if (FileName.Contains(".txt"))
+                                            {
+                                                FileName = FileName.Replace(".txt", "");
+                                            }
                                             if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                                             {
                                                 rutaOutput = Azure.GetUrlContainer();
-                                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                                Upload = Azure.UploadBlobDLSG2(FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
                                                 if (Upload.ToLower().Contains("error"))
                                                 {
                                                     errorproceso = 1;
@@ -299,7 +325,7 @@ namespace CleanDataCsharp.Controllers
                                             else
                                             {
                                                 rutaOutput = Azure.GetUrlContainer();
-                                                Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "transformed_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: transformed);
+                                                Upload = Azure.UploadBlobDLSG2(FilenameAz: "transformed_" + FileName + ".csv", table: DT_DataSource, ContainerBlobName: transformed);
                                                 if (Upload.ToLower().Contains("error"))
                                                 {
                                                     errorproceso = 1;
@@ -312,7 +338,7 @@ namespace CleanDataCsharp.Controllers
                                                     URLlimpios = rutaOutput + "transformed_" + FileName + ".csv";
                                                     if (dataerror.Rows.Count > 0)
                                                     {
-                                                        Upload = Azure.UploadBlobDLSG2(PathBlob: rutaOutput, FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
+                                                        Upload = Azure.UploadBlobDLSG2(FilenameAz: "Rejected_" + FileName + ".csv", table: dataerror, ContainerBlobName: rejected);
                                                         if (Upload.ToLower().Contains("error"))
                                                         {
                                                             errorproceso = 1;
@@ -425,19 +451,19 @@ namespace CleanDataCsharp.Controllers
                             usrexists = 1;
                             break;
                         }
-                    }                    
+                    }
+                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    //var resulttoken = token.ValidateTokenAzDL(identity);
+                    //if (!resulttoken.success)
+                    //{
+                    //    jsonresponse.CodeResponse = 400;
+                    //    jsonresponse.MessageResponse = resulttoken.result;
+                    //    return Json(jsonresponse);
+                    //}
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
                         jsonresponse.MessageResponse = "usuario no valido";
-                        return Json(jsonresponse);
-                    }
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateTokenAzDL(identity);
-                    if (!resulttoken.success)
-                    {
-                        jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = resulttoken.result;
                         return Json(jsonresponse);
                     }
                     else
@@ -458,7 +484,7 @@ namespace CleanDataCsharp.Controllers
                         for (int k = 0; k < NombresArchivos.Count; k++)
                         {
                             FileName = NombresArchivos[k];
-                            remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: Contenedor);
+                            remove = Azure.RemoveFiles(FilenameAz: FileName, ContainerBlobName: Contenedor);
                             if (remove.ToLower().Contains("error"))
                             {
                                 errorproceso = 1;
@@ -506,7 +532,7 @@ namespace CleanDataCsharp.Controllers
             DataValidate.Columns.Add("URL Archivo");
             try
             {
-                if (string.IsNullOrEmpty(parametros.ContenedorSource) || string.IsNullOrEmpty(parametros.ContenedorDestino) || parametros.NombresArchivos.Count == 0 || string.IsNullOrEmpty(parametros.usuarioemail))
+                if (string.IsNullOrEmpty(parametros.ContenedorOrigen) || string.IsNullOrEmpty(parametros.ContenedorDestino) || parametros.NombresArchivos.Count == 0 || string.IsNullOrEmpty(parametros.usuarioemail))
                 {
                     errorproceso = 1;
                     jsonresponse.CodeResponse = 0;
@@ -535,14 +561,6 @@ namespace CleanDataCsharp.Controllers
                         jsonresponse.MessageResponse = "usuario no valido";
                         return Json(jsonresponse);
                     }
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    var resulttoken = token.ValidateTokenAzDL(identity);
-                    if (!resulttoken.success)
-                    {
-                        jsonresponse.CodeResponse = 400;
-                        jsonresponse.MessageResponse = resulttoken.result;
-                        return Json(jsonresponse);
-                    }
                     else
                     {
                         NombresArchivos = parametros.NombresArchivos;
@@ -561,7 +579,7 @@ namespace CleanDataCsharp.Controllers
                         {
                             FileName = NombresArchivos[k];
                             DT_DataSource = Azure.TransformFileforAzure(FileName);
-                            Move = Azure.UploadBlobDLSG2(PathBlob: "", FilenameAz: FileName, table: DT_DataSource, ContainerBlobName: parametros.ContenedorDestino);
+                            Move = Azure.UploadBlobDLSG2(FilenameAz: FileName, table: DT_DataSource, ContainerBlobName: parametros.ContenedorDestino);
                             if (Move.ToLower().Contains("error"))
                             {
                                 errorproceso = 1;
@@ -569,7 +587,7 @@ namespace CleanDataCsharp.Controllers
                             }
                             else
                             {
-                                remove = Azure.RemoveFiles(PathBlob: rutaOutput, FilenameAz: FileName, ContainerBlobName: parametros.ContenedorSource);
+                                remove = Azure.RemoveFiles(FilenameAz: FileName, ContainerBlobName: parametros.ContenedorOrigen);
                                 if (remove.ToLower().Contains("error"))
                                 {
                                     errorproceso = 1;

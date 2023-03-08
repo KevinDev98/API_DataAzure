@@ -23,6 +23,7 @@ namespace CleanDataCsharp.Controllers
         int errorproceso;
         DataTable Process = new DataTable();
         String name;
+        HttpStatusCode statusCode = new HttpStatusCode();
 
         public IConfiguration _Configuration;
         Jwt token = new Jwt();
@@ -107,6 +108,7 @@ namespace CleanDataCsharp.Controllers
                                     {
                                         errorproceso = 1;
                                         statusCode = HttpStatusCode.BadRequest;
+                                        jsonresponse.status = statusCode;
                                         limpios = "error cargando el archivo" + Upload;
                                         jsonresponse.CodeResponse = 400;
                                         jsonresponse.MessageResponse = "No se completaron todos los procesos";
@@ -115,6 +117,7 @@ namespace CleanDataCsharp.Controllers
                                     {
                                         errorproceso = 0;
                                         statusCode = HttpStatusCode.OK;
+                                        jsonresponse.status = statusCode;
                                         limpios = DT_DataSource.Rows.Count.ToString() + " Datos procesados correctamente";
                                         jsonresponse.CodeResponse = 200;
                                         jsonresponse.MessageResponse = "Se completaron todos los procesos";
@@ -131,6 +134,7 @@ namespace CleanDataCsharp.Controllers
                                 {
                                     errorproceso = 1;
                                     statusCode = HttpStatusCode.BadRequest;
+                                    jsonresponse.status = statusCode;
                                     sucios = "error cargando el archivo" + Upload;
                                     jsonresponse.MessageResponse = "ERROR EN CARGANDP EL ARCHIVO: " + url + "rejectedSQL_Table_" + parametros.StrFileName;
                                     jsonresponse.CodeResponse = 400;
@@ -140,8 +144,9 @@ namespace CleanDataCsharp.Controllers
                                 else
                                 {
                                     errorproceso = 0;
-                                    jsonresponse.CodeResponse = 400;
+                                    jsonresponse.CodeResponse = 200;
                                     statusCode = HttpStatusCode.OK;
+                                    jsonresponse.status = statusCode;
                                     jsonresponse.MessageResponse = "ERROR EN EL PROCESO: " + url + "rejectedSQL_Table_" + parametros.StrFileName;
                                     DataValidate.Rows.Add(statusCode.ToString(), name, jsonresponse.MessageResponse, url + "rejectedSQL_Table_" + name);
                                 }
@@ -149,6 +154,8 @@ namespace CleanDataCsharp.Controllers
                         }
                         catch (Exception ex)
                         {
+                            statusCode = HttpStatusCode.BadRequest;
+                            jsonresponse.status = statusCode;
                             jsonresponse.CodeResponse = 400;
                             jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
                         }
@@ -239,6 +246,7 @@ namespace CleanDataCsharp.Controllers
                                     {
                                         errorproceso = 1;
                                         statusCode = HttpStatusCode.BadRequest;
+                                        jsonresponse.status = statusCode;
                                         limpios = "error cargando el archivo" + Upload;
                                         jsonresponse.CodeResponse = 400;
                                         jsonresponse.MessageResponse = "No se completaron todos los procesos";
@@ -248,6 +256,7 @@ namespace CleanDataCsharp.Controllers
                                     {
                                         errorproceso = 0;
                                         statusCode = HttpStatusCode.OK;
+                                        jsonresponse.status = statusCode;
                                         limpios = DT_DataSource.Rows.Count.ToString() + " Datos procesados correctamente";
                                         jsonresponse.CodeResponse = 200;
                                         jsonresponse.MessageResponse = "Se completaron todos los procesos";
@@ -265,6 +274,7 @@ namespace CleanDataCsharp.Controllers
                                     {
                                         errorproceso = 1;
                                         statusCode = HttpStatusCode.BadRequest;
+                                        jsonresponse.status = statusCode;
                                         sucios = "error cargando el archivo" + Upload;
                                         jsonresponse.CodeResponse = 400;
                                         jsonresponse.MessageResponse = "No se completaron todos los procesos";
@@ -275,7 +285,7 @@ namespace CleanDataCsharp.Controllers
                                         errorproceso = 0;
                                         statusCode = HttpStatusCode.OK;
                                         sucios = dataerror.Rows.Count.ToString() + " Datos procesados correctamente";
-                                        jsonresponse.CodeResponse = 400;
+                                        jsonresponse.CodeResponse = 200;
                                         jsonresponse.MessageResponse = "Se completaron todos los procesos";
                                         DataValidate.Rows.Add(statusCode.ToString(), name, sucios, url + name);
                                     }
@@ -290,8 +300,9 @@ namespace CleanDataCsharp.Controllers
                                 {
                                     errorproceso = 1;
                                     statusCode = HttpStatusCode.BadRequest;
+                                    jsonresponse.status = statusCode;
                                     sucios = "error cargando el archivo" + Upload;
-                                    jsonresponse.MessageResponse = "ERROR EN CARGANDP EL ARCHIVO: " + url + "rejectedSQL_Table_" + parametros.StrFileName;
+                                    jsonresponse.MessageResponse = "ERROR EN CARGANDO EL ARCHIVO: " + url + "rejectedSQL_Table_" + parametros.StrFileName;
                                     jsonresponse.CodeResponse = 400;
                                     jsonresponse.MessageResponse = "No se completaron todos los procesos";
                                     DataValidate.Rows.Add(statusCode.ToString(), name, jsonresponse.MessageResponse, "--");
@@ -299,19 +310,21 @@ namespace CleanDataCsharp.Controllers
                                 else
                                 {
                                     errorproceso = 0;
-                                    jsonresponse.CodeResponse = 400;
+                                    jsonresponse.CodeResponse = 200;
                                     statusCode = HttpStatusCode.OK;
+                                    jsonresponse.status = statusCode;
                                     jsonresponse.MessageResponse = "ERROR EN EL PROCESO: " + url + "rejectedSQL_Table_" + parametros.StrFileName;
                                     DataValidate.Rows.Add(statusCode.ToString(), name, jsonresponse.MessageResponse, url + "rejectedSQL_Table_" + name);
                                 }
                                 //jsonresponse.CodeResponse = 400;
                                 //jsonresponse.MessageResponse = "error procesando datos SQL: " + DT_DataSource.Rows[0][0].ToString();
                             }
-
                         }
                         catch (Exception ex)
                         {
                             jsonresponse.CodeResponse = 400;
+                            statusCode= HttpStatusCode.BadRequest;
+                            jsonresponse.status = statusCode;
                             jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
                         }
                         jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
