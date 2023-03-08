@@ -38,6 +38,7 @@ namespace CleanDataCsharp.Controllers
         DataTable DT_DataSource = new DataTable();
         string Contenedor, raw, transformed, curated, rejected;
         List<string> NombresArchivos = new List<string>();
+        HttpStatusCode statusCode = new HttpStatusCode();
 
         public IConfiguration _Configuration;
         Jwt token = new Jwt();
@@ -112,6 +113,11 @@ namespace CleanDataCsharp.Controllers
                             dataerror = new DataTable();
 
                             FileName = NombresArchivos[k];
+                            if (!FileName.Contains("csv") || !FileName.Contains("txt") || !FileName.Contains("json") || !FileName.Contains("xml"))
+                            {
+                                errorproceso = 1;
+                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, "Tipo de archivo no soportado");
+                            }
                             DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
                             if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                             {
@@ -180,19 +186,25 @@ namespace CleanDataCsharp.Controllers
             }
             catch (Exception ex)
             {
-                errorproceso = 1;
+                errorproceso = 1;                
+                statusCode = HttpStatusCode.BadRequest;
+                jsonresponse.status = statusCode;
                 jsonresponse.MessageResponse = "Error en el proceso Estandarización: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
             }
             if (errorproceso == 0)
             {
                 //jsonresponse.Response = response;
+                statusCode = HttpStatusCode.OK;
+                jsonresponse.status = statusCode;
                 jsonresponse.CodeResponse = 200;
                 jsonresponse.MessageResponse = "Proceso Terminado con Exito";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
             }
             else
             {
+                statusCode = HttpStatusCode.NotFound;
+                jsonresponse.status = statusCode;
                 jsonresponse.CodeResponse = 404;
                 jsonresponse.MessageResponse = "No se cargaron todos los archivos";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
