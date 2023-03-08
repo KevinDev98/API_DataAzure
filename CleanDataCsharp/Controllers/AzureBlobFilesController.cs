@@ -163,7 +163,7 @@ namespace CleanDataCsharp.Controllers
                                             rutaOutput = Azure.GetUrlContainer();
                                             rutaOutput = rutaOutput.Replace(Contenedor, raw);
                                             URL = rutaOutput + FileName + ".csv";
-                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, URL);
+                                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName + ".csv", URL);
                                         }
                                     }
                                 }
