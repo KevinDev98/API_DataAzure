@@ -159,7 +159,7 @@ namespace CleanDataCsharp.Class
             //container.UploadBlob();
             return listName;
         }
-        public string UploadBlobDLSG2(string PathBlob, string FilenameAz, DataTable table, string ContainerBlobName) //Carga el archivo a DLS 
+        public string UploadBlobDLSG2(string FilenameAz, DataTable table, string ContainerBlobName) //Carga el archivo a DLS 
         {
             //Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
             //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
@@ -190,7 +190,7 @@ namespace CleanDataCsharp.Class
             }
             return jsonresponse.MessageResponse;
         }
-        public string RemoveFiles(string PathBlob, string FilenameAz, string ContainerBlobName)
+        public string RemoveFiles(string FilenameAz, string ContainerBlobName)
         {
             //Str_Connect2 = Str_Connect; //Security.DesEncriptar(Str_Connect);
             //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Str_Connect2);//Se inicia conexión
