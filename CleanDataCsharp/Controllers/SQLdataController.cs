@@ -32,7 +32,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("GetDataSQL")]
-        public IActionResult GetDataSQL(SQLDataModel parametros)
+        public dynamic GetDataSQL(SQLDataModel parametros)
         {
             if (string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName))
             {
@@ -158,6 +158,12 @@ namespace CleanDataCsharp.Controllers
                             jsonresponse.status = statusCode;
                             jsonresponse.CodeResponse = 400;
                             jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
+                            return new
+                            {
+                                succes = false,
+                                message = jsonresponse.MessageResponse,
+                                result = HttpStatusCode.BadRequest.ToString()
+                            };
                         }
                         jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                     }
@@ -168,7 +174,7 @@ namespace CleanDataCsharp.Controllers
 
         [HttpPost]
         [Route("TransformDataSQL")]
-        public IActionResult TransformDataSQL(SQLDataModel parametros)
+        public dynamic TransformDataSQL(SQLDataModel parametros)
         {
             if (string.IsNullOrEmpty(parametros.contenedorRejected) || string.IsNullOrEmpty(parametros.contenedor) || string.IsNullOrEmpty(parametros.TableName) || string.IsNullOrEmpty(parametros.StrFileName))
             {
@@ -326,6 +332,12 @@ namespace CleanDataCsharp.Controllers
                             statusCode= HttpStatusCode.BadRequest;
                             jsonresponse.status = statusCode;
                             jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
+                            return new
+                            {
+                                succes = false,
+                                message = jsonresponse.MessageResponse,
+                                result = HttpStatusCode.BadRequest.ToString()
+                            };
                         }
                         jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                     }
