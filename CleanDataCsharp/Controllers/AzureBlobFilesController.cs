@@ -112,15 +112,7 @@ namespace CleanDataCsharp.Controllers
                             dataerror = new DataTable();
 
                             FileName = NombresArchivos[k];
-                            if (!string.IsNullOrEmpty(parametros.ContenedorRAW))
-                            {
-                                DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
-                            }
-                            else
-                            {
-
-                            }
-                            
+                            DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
                             if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                             {
                                 errorproceso = 1;
@@ -262,7 +254,7 @@ namespace CleanDataCsharp.Controllers
                             DT_DataSource = new DataTable();
                             try
                             {
-                                DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
+                                DT_DataSource = Azure.TransformFileforAzure(FileName);
                                 if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
                                 {
                                     errorproceso = 1;
