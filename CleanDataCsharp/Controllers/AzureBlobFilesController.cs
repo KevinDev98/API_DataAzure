@@ -17,6 +17,7 @@ using static System.Net.Mime.MediaTypeNames;
 using System.ComponentModel;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace CleanDataCsharp.Controllers
 {
@@ -39,6 +40,10 @@ namespace CleanDataCsharp.Controllers
         string Contenedor, raw, transformed, curated, rejected;
         List<string> NombresArchivos = new List<string>();
         HttpStatusCode statusCode = new HttpStatusCode();
+
+        DataTable DT_Merge = new DataTable();
+        int extvalida = 0;
+        List<string> extencionesvalidas = new List<string>();
 
         public IConfiguration _Configuration;
         Jwt token = new Jwt();
@@ -85,14 +90,6 @@ namespace CleanDataCsharp.Controllers
                             break;
                         }
                     }
-                    //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    //var resulttoken = token.ValidateTokenAzDL(identity);
-                    //if (!resulttoken.success)
-                    //{
-                    //    jsonresponse.CodeResponse = 400;
-                    //    jsonresponse.MessageResponse = resulttoken.message;
-                    //    return Json(jsonresponse);
-                    //}
                     if (usrexists == 0)
                     {
                         jsonresponse.CodeResponse = 400;
@@ -115,13 +112,24 @@ namespace CleanDataCsharp.Controllers
                                 NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
                             }
                         }
+                        extencionesvalidas.Add("csv");
+                        extencionesvalidas.Add("txt");
+                        extencionesvalidas.Add("json");
+                        extencionesvalidas.Add("xml");
                         for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
                         {
                             DT_DataSource = new DataTable();
                             dataerror = new DataTable();
-
                             FileName = NombresArchivos[k];
-                            if (!FileName.Contains("csv") || !FileName.Contains("txt") || !FileName.Contains("json") || !FileName.Contains("xml"))
+                            for (int z = 0; z < extencionesvalidas.Count(); z++)
+                            {
+                                if (FileName.Contains(extencionesvalidas[z]))
+                                {
+                                    extvalida = 1;
+                                    break;
+                                }
+                            }
+                            if (extvalida == 0)
                             {
                                 errorproceso = 1;
                                 DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, "Tipo de archivo no soportado");
@@ -607,14 +615,14 @@ namespace CleanDataCsharp.Controllers
                     else
                     {
                         NombresArchivos = parametros.NombresArchivos;
-                        Azure = new AzureFunctionsClass(Contenedor);
+                        Azure = new AzureFunctionsClass(parametros.ContenedorOrigen);
                         if (NombresArchivos.Count == 1)
                         {
                             rutaOutput = Azure.GetUrlContainer();
                             FileName = NombresArchivos[0];
                             if (FileName == "*")
                             {
-                                NombresArchivos = Azure.ListFile(rutaOutput, Contenedor);
+                                NombresArchivos = Azure.ListFile(rutaOutput, parametros.ContenedorOrigen);
                             }
                         }
                         rutaOutput = Azure.GetUrlContainer();
@@ -643,7 +651,6 @@ namespace CleanDataCsharp.Controllers
                             }
                         }
                     }
-
                 }
             }
             catch (Exception ex)
@@ -671,6 +678,161 @@ namespace CleanDataCsharp.Controllers
                 jsonresponse.CodeResponse = 404;
                 jsonresponse.MessageResponse = "No se eliminaron todos los archivos";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+            }
+            return Json(jsonresponse);
+        }
+
+        [HttpPost]
+        [Route("MergeFiles")]
+        public dynamic MergeFiles(ParametrosModel parametros)
+        {
+            try
+            {
+                string upload = "";
+                DataValidate = new DataTable();
+                DataValidate.Columns.Add("Status code");
+                DataValidate.Columns.Add("Archivo Trabajado");
+                DataValidate.Columns.Add("URL Archivo");
+                if (string.IsNullOrEmpty(parametros.ContenedorOrigen) || string.IsNullOrEmpty(parametros.ContenedorDestino) || parametros.NombresArchivos.Count == 0 || string.IsNullOrEmpty(parametros.usuarioemail))
+                {
+                    errorproceso = 1;
+                    jsonresponse.CodeResponse = 0;
+                    jsonresponse.MessageResponse = "Parametros vacios";
+                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "vacio", jsonresponse.MessageResponse);
+                }
+                else
+                {
+                    string UploadFile, URL;
+                    _Configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                    var Az = _Configuration.GetSection("AzureConf").Get<AzureCon>();
+                    for (int z = 0; z < Az.AplicantsemailAddress.Count; z++)
+                    {
+                        solicitante = Az.AplicantsemailAddress[z];
+                        if (parametros.usuarioemail == solicitante)
+                        {
+                            usrexists = 1;
+                            break;
+                        }
+                    }
+                    if (usrexists == 0)
+                    {
+                        jsonresponse.CodeResponse = 400;
+                        jsonresponse.MessageResponse = "usuario no valido";
+                        return Json(jsonresponse);
+                    }
+                    else
+                    {
+                        NombresArchivos = parametros.NombresArchivos;
+                        Azure = new AzureFunctionsClass(parametros.ContenedorOrigen);
+                        if (NombresArchivos.Count == 1)
+                        {
+                            rutaOutput = Azure.GetUrlContainer();
+                            FileName = NombresArchivos[0];
+                            if (FileName == "*")
+                            {
+                                NombresArchivos = Azure.ListFile(rutaOutput, parametros.ContenedorOrigen);
+                            }
+                        }
+                        rutaOutput = Azure.GetUrlContainer();
+
+                        extencionesvalidas.Add("csv");
+                        extencionesvalidas.Add("txt");
+                        extencionesvalidas.Add("json");
+                        extencionesvalidas.Add("xml");
+
+                        for (int k = 0; k < NombresArchivos.Count; k++)
+                        {
+                            //DT_DataSource = new DataTable();
+                            dataerror = new DataTable();
+                            DataTable DT_DataSource2 = new DataTable();
+
+                            FileName = NombresArchivos[k];
+
+                            for (int z = 0; z < extencionesvalidas.Count(); z++)
+                            {
+                                if (FileName.Contains(extencionesvalidas[z]))
+                                {
+                                    extvalida = 1;
+                                    break;
+                                }
+                            }
+                            if (extvalida == 0)
+                            {
+                                errorproceso = 1;
+                                DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, "Tipo de archivo no soportado");
+                            }
+                            else
+                            {
+                                if (k == 0)
+                                {
+                                    DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
+                                }
+                                else
+                                {
+                                    DT_DataSource2 = Azure.TransformFileforAzure(FileName, parametros.delimitador);
+                                    if (DT_DataSource.Columns.Count < DT_DataSource2.Columns.Count)
+                                    {
+                                        errorproceso = 1;
+                                        DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, "Archivo con más columnas de lo esperado, se recomida  que todos los archivos a fusionar tengan el mismo schema de datos.");
+                                    }
+                                    else
+                                    {
+                                        DT_Merge = DT_DataSource.Copy();
+                                        DT_Merge.Merge(DT_DataSource2);
+                                        DT_DataSource = DT_Merge;
+                                    }
+                                }
+                                if (DT_DataSource.Columns[0].ColumnName.ToLower().Contains("error"))
+                                {
+                                    errorproceso = 1;
+                                    DataValidate.Rows.Add(HttpStatusCode.NotFound.ToString(), FileName, DT_DataSource.Rows[0][0].ToString());
+                                }
+                            }
+                        }
+                        FileName = "Merge_" + parametros.MergeFileName;
+                        UploadFile = Azure.UploadBlobDLSG2(FilenameAz: FileName + ".csv", table: DT_DataSource, ContainerBlobName: parametros.ContenedorDestino);
+                        if (UploadFile.ToLower().Contains("error"))
+                        {
+                            errorproceso = 1;
+                            DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error cargando el archivo", UploadFile);
+                        }
+                        else
+                        {
+                            rutaOutput = Azure.GetUrlContainer();
+                            rutaOutput = rutaOutput.Replace(parametros.ContenedorOrigen, parametros.ContenedorDestino);
+                            URL = rutaOutput + FileName + ".csv";
+                            DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName + ".csv", URL);
+                        }
+                    }
+                }
+                if (errorproceso == 0)
+                {
+                    jsonresponse.status = HttpStatusCode.OK;
+                    jsonresponse.CodeResponse = 200;
+                    jsonresponse.MessageResponse = "Archivos combinados correctamente";
+                    jsonresponse.solicitante = parametros.usuarioemail;
+                    jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                }
+                else
+                {
+                    jsonresponse.status = HttpStatusCode.NotFound;
+                    jsonresponse.CodeResponse = 404;
+                    jsonresponse.MessageResponse = "No se procesaron todos los archivos";
+                    jsonresponse.solicitante = parametros.usuarioemail;
+                    jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                }
+            }
+            catch (Exception ex)
+            {
+                jsonresponse.MessageResponse = "Error en el proceso merge: " + ex.Message + "_" + ex.InnerException;
+                return new
+                {
+                    succes = false,
+                    message = jsonresponse.MessageResponse,
+                    result = HttpStatusCode.BadRequest.ToString()
+                };
             }
             return Json(jsonresponse);
         }

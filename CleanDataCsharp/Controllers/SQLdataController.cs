@@ -67,7 +67,7 @@ namespace CleanDataCsharp.Controllers
                         usrexists = 1;
                         break;
                     }
-                }                
+                }
                 if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
@@ -209,7 +209,7 @@ namespace CleanDataCsharp.Controllers
                         usrexists = 1;
                         break;
                     }
-                }                
+                }
                 if (usrexists == 0)
                 {
                     jsonresponse.CodeResponse = 400;
