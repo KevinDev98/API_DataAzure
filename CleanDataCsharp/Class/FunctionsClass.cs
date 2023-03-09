@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace CleanDataCsharp.Class
 {
@@ -53,8 +54,10 @@ namespace CleanDataCsharp.Class
         }
         public string Remove_Special_Characteres(string s)
         {
+            char charcomillas = (char)34;
+            string str_comillas = Convert.ToString(charcomillas);
             List<string> CaracteresEspeciales = new List<string>() {
-    "#", "$", "%", "&", "!", "|", "[", "]", "{", "}", "/", "_", ";", ":", ",", "*","(",")"
+    "#", "$", "%", "&", "!", "|", "[", "]", "{", "}", "/", "_", ";", ":", ",", "*","(",")",str_comillas
     };//Lista con los caracteres especiales
             try
             {
@@ -326,7 +329,7 @@ namespace CleanDataCsharp.Class
                     data = dt.Rows[z][0].ToString();
                     idx = dt.Rows.IndexOf(dt.Rows[z]);
                     NewR = dt.Rows[z];
-                    if (Convert.ToInt16(data)>-1)
+                    if (Convert.ToInt16(data) > -1)
                     {
                         CleanDT.ImportRow(NewR);
                         CleanDT.AcceptChanges();
@@ -809,30 +812,7 @@ namespace CleanDataCsharp.Class
                     for (int s = 0; s < dt.Columns.Count; s++)
                     {
 
-                        if (dt.Rows[z][s] == null)//Valida si la celda es null
-                        {
-                            if (dt.Columns[s].DataType.Name == "String")
-                            {
-                                dt.Rows[z][s] = "-";
-                            }
-                            else if (dt.Columns[s].DataType.Name.ToLower().Contains("int"))
-                            {
-                                dt.Rows[z][s] = 0;
-                            }
-                            else if (dt.Columns[s].DataType.Name == "Date")
-                            {
-                                dt.Rows[z][s] = "01/01/9999";
-                            }
-                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
-                            {
-                                dt.Rows[z][s] = 0;
-                            }
-                            //isnull = true;
-                            //indexerror.Add(z);
-                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //ControlErroresSQL(dt, z);
-                        }
-                        else if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
+                        if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
                         {
                             if (dt.Columns[s].DataType.Name == "String")
                             {
@@ -913,13 +893,13 @@ namespace CleanDataCsharp.Class
                             }
                             else if (dt.Columns[s].ColumnName.ToLower().Contains("telefono") || dt.Columns[s].ColumnName.ToLower().Contains("cel") || dt.Columns[s].ColumnName.ToLower().Contains("phone"))
                             {
-                                if (Validate_Phone(dt.Rows[z][s].ToString(),10, z) == false)
+                                if (Validate_Phone(dt.Rows[z][s].ToString(), 10, z) == false)
                                 {
                                     ControlErroresSQL(dt, z);
                                 }
                                 else
                                 {
-                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().Replace(" ","").Replace("-", "");
+                                    dt.Rows[z][s] = dt.Rows[z][s].ToString().Replace(" ", "").Replace("-", "");
                                 }
                             }
                         }
@@ -946,31 +926,7 @@ namespace CleanDataCsharp.Class
                 {
                     for (int s = 0; s < dt.Columns.Count; s++)
                     {
-
-                        if (dt.Rows[z][s] == null)//Valida si la celda es null
-                        {
-                            if (dt.Columns[s].DataType.Name == "String")
-                            {
-                                dt.Rows[z][s] = "-";
-                            }
-                            else if (dt.Columns[s].DataType.Name.ToLower().Contains("int"))
-                            {
-                                dt.Rows[z][s] = 0;
-                            }
-                            else if (dt.Columns[s].DataType.Name == "Date")
-                            {
-                                dt.Rows[z][s] = "01/01/9999";
-                            }
-                            else if (dt.Columns[s].DataType.Name == "Decimal" || dt.Columns[s].DataType.Name == "Double")
-                            {
-                                dt.Rows[z][s] = 0;
-                            }
-                            //isnull = true;
-                            //indexerror.Add(z);
-                            //error.Add("Se encontro un valor nulo en la columna " + dt.Columns[s].ColumnName + " en la fila " + (z + 1));
-                            //ControlErrores(dt, z);
-                        }
-                        else if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
+                        if (string.IsNullOrEmpty(dt.Rows[z][s].ToString()))
                         {
                             if (dt.Columns[s].DataType.Name == "String")
                             {
@@ -1114,7 +1070,7 @@ namespace CleanDataCsharp.Class
             DataTable dt = new DataTable();
             using (DataReaderCSV)
             {
-                string[] headers = DataReaderCSV.ReadLine().Split(",");
+                string[] headers = DataReaderCSV.ReadLine().Split(delimiter);
                 foreach (string header in headers)
                 {
                     dt.Columns.Add(header);
@@ -1184,6 +1140,9 @@ namespace CleanDataCsharp.Class
                         }
                     }
                     writer.Write(writer.NewLine);
+                    char charcomillas = (char)34;
+                    string str_comillas=Convert.ToString(charcomillas);
+                    
                     foreach (DataRow dr in table.Rows)
                     {
                         for (int i = 0; i < table.Columns.Count; i++)
@@ -1191,14 +1150,18 @@ namespace CleanDataCsharp.Class
                             if (!Convert.IsDBNull(dr[i]))
                             {
                                 string value = dr[i].ToString();
+                                value = value.Replace(str_comillas, "");
                                 if (value.Contains(',') || value.Contains(' '))
                                 {
-                                    value = String.Format("\"{0}\"", value);
+                                    value = Remove_SpacheWithe(value);
+                                    value = String.Format("{0}", value);
+                                    //value = String.Format("\"{0}\"", value);
                                     //value = value.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
                                     writer.Write(value);
                                 }
                                 else
                                 {
+                                    value=Remove_SpacheWithe(value);
                                     //value = value.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
                                     writer.Write(value);
                                 }
