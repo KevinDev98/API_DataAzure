@@ -113,9 +113,13 @@ namespace CleanDataCsharp.Class
                 {
                     date = DateTime.ParseExact(dte, "ddMMyyyy", CultureInfo.InvariantCulture);
                 }
-                //dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
-                date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
+                else
+                {
+                    //dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
+                    date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
+                }                
                 dte = date.ToString("dd/MM/yyyy"); // Da el formato de fecha
+                dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
             }
             catch (Exception)
             {
