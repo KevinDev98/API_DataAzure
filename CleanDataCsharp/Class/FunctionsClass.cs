@@ -299,6 +299,16 @@ namespace CleanDataCsharp.Class
             for (var i = 0; i <= ColumnasHeader - 1; i++)
                 csv.Columns.Add(dt.Columns[i].ColumnName);
         }
+        public DataTable RenameHeaders(DataTable dt)
+        {
+            DataTable newheader = dt;
+            int ColumnasHeader = dt.Columns.Count;
+            //Copia la estructura de la tabla original a la tabla de errores
+            for (var i = 0; i <= ColumnasHeader - 1; i++)
+                //newheader.Columns.Add(dt.Columns[i].ColumnName.Replace("_"," "));
+                newheader.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace("_", " ");
+            return newheader;
+        }
         public DataTable DeleteDirtyRows(DataTable dt) //Elimina las filas sucias de una tabla
         {
             string data = "";

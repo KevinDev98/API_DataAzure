@@ -742,10 +742,12 @@ namespace CleanDataCsharp.Controllers
                                 if (k == 0)
                                 {
                                     DT_DataSource = Azure.TransformFileforAzure(FileName, parametros.delimitador);
+                                    DT_DataSource=Functions.RenameHeaders(DT_DataSource);//remplaza guion bajo por espacio, entre nombres de columnas
                                 }
                                 else
                                 {
                                     DT_DataSource2 = Azure.TransformFileforAzure(FileName, parametros.delimitador);
+                                    DT_DataSource2 = Functions.RenameHeaders(DT_DataSource2);//remplaza guion bajo por espacio, entre nombres de columnas
                                     if (DT_DataSource.Columns.Count < DT_DataSource2.Columns.Count)
                                     {
                                         errorproceso = 1;
