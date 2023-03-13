@@ -611,16 +611,17 @@ namespace CleanDataCsharp.Controllers
                             }
                             else
                             {
-                                remove = Azure.RemoveFiles(FilenameAz: FileName, ContainerBlobName: parametros.ContenedorOrigen);
-                                if (remove.ToLower().Contains("error"))
-                                {
-                                    errorproceso = 1;
-                                    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
-                                }
-                                else
-                                {
-                                    DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
-                                }
+                                //remove = Azure.RemoveFiles(FilenameAz: FileName, ContainerBlobName: parametros.ContenedorOrigen);
+                                //if (remove.ToLower().Contains("error"))
+                                //{
+                                //    errorproceso = 1;
+                                //    DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), "Error eliminando el archivo", remove);
+                                //}
+                                //else
+                                //{
+                                //    DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
+                                //}
+                                DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, Move);
                             }
                         }
                     }
