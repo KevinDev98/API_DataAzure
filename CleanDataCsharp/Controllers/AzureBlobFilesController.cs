@@ -623,6 +623,7 @@ namespace CleanDataCsharp.Controllers
                                 //}
                                 rutaOutput = Azure.GetUrlContainer();
                                 rutaOutput = rutaOutput.Replace(parametros.ContenedorOrigen, parametros.ContenedorDestino);
+                                rutaOutput = rutaOutput + FileName;
                                 DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, rutaOutput);
                             }
                         }
@@ -634,12 +635,8 @@ namespace CleanDataCsharp.Controllers
                 errorproceso = 1;
                 jsonresponse.MessageResponse = "Error en el proceso removeblobs: " + ex.Message + "_" + ex.InnerException;
                 DataValidate.Rows.Add(HttpStatusCode.BadRequest.ToString(), FileName, jsonresponse.MessageResponse);
-                return new
-                {
-                    succes = false,
-                    message = jsonresponse.MessageResponse,
-                    result = HttpStatusCode.BadRequest.ToString()
-                };
+                jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                return BadRequest(Json(jsonresponse));
             }
             if (errorproceso == 0)
             {
