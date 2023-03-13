@@ -621,7 +621,9 @@ namespace CleanDataCsharp.Controllers
                                 //{
                                 //    DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
                                 //}
-                                DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, Move);
+                                rutaOutput = Azure.GetUrlContainer();
+                                rutaOutput = rutaOutput.Replace(parametros.ContenedorOrigen, parametros.ContenedorDestino);
+                                DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, rutaOutput);
                             }
                         }
                     }
@@ -644,13 +646,13 @@ namespace CleanDataCsharp.Controllers
                 //response.StatusCode = HttpStatusCode.OK;
                 ////jsonresponse.Response = response;
                 jsonresponse.CodeResponse = 200;
-                jsonresponse.MessageResponse = "Proceso Terminado con Exito. Archivos eliminados";
+                jsonresponse.MessageResponse = "Proceso Terminado con Exito.";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
             }
             else
             {
                 jsonresponse.CodeResponse = 404;
-                jsonresponse.MessageResponse = "No se eliminaron todos los archivos";
+                jsonresponse.MessageResponse = "No se movieron todos los archivos. Valide que el nombre y contenedor sean correctos";
                 jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
             }
             return Json(jsonresponse);
