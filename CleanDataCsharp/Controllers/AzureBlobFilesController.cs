@@ -281,7 +281,7 @@ namespace CleanDataCsharp.Controllers
                         rejected = parametros.ContenedorRejected;
                         Azure = new AzureFunctionsClass(Contenedor);
 
-                        for (int k = 0; k < NombresArchivos.Count; k++)// este for se deja con un valor en duro, ya que para este ejercicio solo se cuentan con 3 archivos
+                        for (int k = 0; k < NombresArchivos.Count; k++)
                         {
                             FileName = NombresArchivos[k];
                             DT_DataSource = new DataTable();
