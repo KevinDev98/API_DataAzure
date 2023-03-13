@@ -38,6 +38,7 @@ namespace CleanDataCsharp.Controllers
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "parametros vacios";
+                return BadRequest(Json(jsonresponse));
             }
             else
             {
@@ -72,7 +73,7 @@ namespace CleanDataCsharp.Controllers
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "usuario no valido";
-                    return Json(jsonresponse);
+                    return NotFound(Json(jsonresponse));
                 }
                 else
                 {
@@ -158,12 +159,8 @@ namespace CleanDataCsharp.Controllers
                             jsonresponse.status = statusCode;
                             jsonresponse.CodeResponse = 400;
                             jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
-                            return new
-                            {
-                                succes = false,
-                                message = jsonresponse.MessageResponse,
-                                result = HttpStatusCode.BadRequest.ToString()
-                            };
+                            jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                            return BadRequest(Json(jsonresponse));
                         }
                         jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                     }
@@ -180,6 +177,7 @@ namespace CleanDataCsharp.Controllers
             {
                 jsonresponse.CodeResponse = 0;
                 jsonresponse.MessageResponse = "parametros vacios";
+                return BadRequest(Json(jsonresponse));
             }
             else
             {
@@ -214,7 +212,7 @@ namespace CleanDataCsharp.Controllers
                 {
                     jsonresponse.CodeResponse = 400;
                     jsonresponse.MessageResponse = "usuario no valido";
-                    return Json(jsonresponse);
+                    return NotFound(Json(jsonresponse));
                 }
                 else
                 {
@@ -332,18 +330,14 @@ namespace CleanDataCsharp.Controllers
                             statusCode= HttpStatusCode.BadRequest;
                             jsonresponse.status = statusCode;
                             jsonresponse.MessageResponse = "error en el proceso SQL: " + ex.Message + "_" + ex.InnerException;
-                            return new
-                            {
-                                succes = false,
-                                message = jsonresponse.MessageResponse,
-                                result = HttpStatusCode.BadRequest.ToString()
-                            };
+                            jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
+                            return BadRequest(Json(jsonresponse));
                         }
                         jsonresponse.ListResponse = Functions.ConvertDataTableToDicntionary(DataValidate);
                     }
                 }
             }
-            return Json(jsonresponse);
+            return Ok(jsonresponse);
         }
     }
 }

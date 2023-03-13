@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Globalization;
 
 namespace CleanDataCsharp.Class
 {
@@ -106,9 +107,19 @@ namespace CleanDataCsharp.Class
         {
             try
             {
-                //dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
-                DateTime date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
+                DateTime date;
+                //22082016
+                if (!dte.Contains("-") && !dte.Contains("/"))
+                {
+                    date = DateTime.ParseExact(dte, "ddMMyyyy", CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    //dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
+                    date = Convert.ToDateTime(dte);//Intenta convertir la fecha a un valor tipo decha
+                }                
                 dte = date.ToString("dd/MM/yyyy"); // Da el formato de fecha
+                dte = dte.Replace(" 000000.0000000", "").Replace(" 12:00:00 a. m.", "").Replace(" 00:00", "").Replace(" 00:00:00.0000000", "");
             }
             catch (Exception)
             {
