@@ -622,7 +622,8 @@ namespace CleanDataCsharp.Controllers
                                 //    DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, remove);
                                 //}
                                 rutaOutput = Azure.GetUrlContainer();
-                                rutaOutput=rutaOutput.Replace(parametros.ContenedorOrigen, parametros.ContenedorDestino);    
+                                rutaOutput=rutaOutput.Replace(parametros.ContenedorOrigen, parametros.ContenedorDestino);
+                                rutaOutput = rutaOutput + FileName;
                                 DataValidate.Rows.Add(HttpStatusCode.OK.ToString(), FileName, rutaOutput);
                             }
                         }
